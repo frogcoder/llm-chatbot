@@ -4,4 +4,4 @@ import tools, resource, prompts
 mcp = FastMCP("BankingDemo")
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport='stdio')
