@@ -1,13 +1,27 @@
 import os
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
+import glob
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 def load_documents(directory_path):
     """Load documents from a directory containing PDFs"""
-    loader = DirectoryLoader(directory_path, glob="**/*.pdf", loader_cls=PyPDFLoader)
-    documents = loader.load()
-    print(f"Loaded {len(documents)} document pages")
-    return documents
+    # Get all PDF files in the directory
+    pdf_files = glob.glob(os.path.join(directory_path, "**/*.pdf"), recursive=True)
+    
+    # Load each PDF file individually to handle errors gracefully
+    all_documents = []
+    for pdf_file in pdf_files:
+        try:
+            loader = PyPDFLoader(pdf_file)
+            documents = loader.load()
+            all_documents.extend(documents)
+            print(f"Loaded {len(documents)} pages from {os.path.basename(pdf_file)}")
+        except Exception as e:
+            print(f"Error loading file {pdf_file}")
+            print(f"  Error details: {str(e)}")
+    
+    print(f"Loaded {len(all_documents)} document pages in total")
+    return all_documents
 
 def split_documents(documents, chunk_size=1000, chunk_overlap=200):
     """Split documents into chunks for better processing"""
