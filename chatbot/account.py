@@ -1,5 +1,5 @@
 from decimal import Decimal
-from models import Account
+from chatbot.models import Account
 
 
 def list_accounts(user_id: str) -> list[Account]:
