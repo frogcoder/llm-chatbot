@@ -1,0 +1,11 @@
+google-generativeai
+python-dotenv
+langchain
+langchain-google-genai
+langchain-chroma
+chromadb
+pypdf
+sentence-transformers
+requests
+beautifulsoup4
+cryptography
