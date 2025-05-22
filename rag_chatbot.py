@@ -17,7 +17,7 @@ class RBCChatbot:
         
         # Initialize the LLM with explicit API key
         api_key = os.getenv("GEMINI_API_KEY")
-        self.llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.2, google_api_key=api_key)
+        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0.2, google_api_key=api_key)
         
         # Create the retrieval chain
         self.qa_chain = RetrievalQA.from_chain_type(
@@ -41,8 +41,8 @@ class RBCChatbot:
             # Combine the system prompt with the user's question
             full_query = f"{self.system_prompt}\n\nQuestion: {question}"
             
-            # Get the answer from the chain
-            result = self.qa_chain({"query": full_query})
+            # Get the answer from the chain using invoke instead of __call__
+            result = self.qa_chain.invoke({"query": full_query})
             
             # Extract the answer and sources
             answer = result["result"]
