@@ -20,19 +20,22 @@ def create_vector_store(documents, persist_directory="./chroma_db"):
         google_api_key=api_key
     )
     
-    # Create and persist the vector store
+    # Create the vector store (persistence is automatic)
     vector_store = Chroma.from_documents(
         documents=documents,
         embedding=embeddings,
         persist_directory=persist_directory
     )
-    vector_store.persist()
     print(f"Vector store created with {len(documents)} document chunks")
     print(f"Vector store persisted to {persist_directory}")
     return vector_store
 
 def load_vector_store(persist_directory="./chroma_db"):
     """Load an existing vector store"""
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    # Use the same API key as in create_vector_store
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001",
+        google_api_key=api_key
+    )
     vector_store = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
     return vector_store
