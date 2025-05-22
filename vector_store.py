@@ -2,13 +2,23 @@ import os
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 load_dotenv()
 
+# Configure the Gemini API with the API key from .env
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise ValueError("GEMINI_API_KEY not found in environment variables")
+genai.configure(api_key=api_key)
+
 def create_vector_store(documents, persist_directory="./chroma_db"):
     """Create a vector store from document chunks"""
-    # Initialize the embeddings using Gemini
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    # Initialize the embeddings using Gemini with explicit API key
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001",
+        google_api_key=api_key
+    )
     
     # Create and persist the vector store
     vector_store = Chroma.from_documents(
