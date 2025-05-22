@@ -17,7 +17,8 @@ def create_vector_store(documents, persist_directory="./chroma_db"):
         persist_directory=persist_directory
     )
     vector_store.persist()
-    print(f"Vector store created and persisted to {persist_directory}")
+    print(f"Vector store created with {len(documents)} document chunks")
+    print(f"Vector store persisted to {persist_directory}")
     return vector_store
 
 def load_vector_store(persist_directory="./chroma_db"):
