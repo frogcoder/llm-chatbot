@@ -15,8 +15,9 @@ class RBCChatbot:
         # Load the vector store
         self.vector_store = load_vector_store(persist_directory)
         
-        # Initialize the LLM
-        self.llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.2)
+        # Initialize the LLM with explicit API key
+        api_key = os.getenv("GEMINI_API_KEY")
+        self.llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.2, google_api_key=api_key)
         
         # Create the retrieval chain
         self.qa_chain = RetrievalQA.from_chain_type(
