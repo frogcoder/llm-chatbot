@@ -73,10 +73,19 @@ Always use the appropriate tools when needed:
             # Format tools for Gemini API
             function_declarations = []
             for tool in tools:
-                # Extract tool information
-                tool_name = tool.get("name", "")
-                tool_description = tool.get("description", "")
-                tool_parameters = tool.get("parameters", [])
+                # Extract tool information - tools might be tuples or dictionaries
+                if isinstance(tool, dict):
+                    tool_name = tool.get("name", "")
+                    tool_description = tool.get("description", "")
+                    tool_parameters = tool.get("parameters", [])
+                elif isinstance(tool, tuple) and len(tool) >= 3:
+                    # Assuming tuple structure is (name, description, parameters, ...)
+                    tool_name = tool[0]
+                    tool_description = tool[1]
+                    tool_parameters = tool[2] if len(tool) > 2 else []
+                else:
+                    print(f"Skipping tool with unexpected format: {tool}")
+                    continue
                 
                 # Build parameters object
                 properties = {}
