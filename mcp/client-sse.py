@@ -41,6 +41,8 @@ class InteractiveBankingAssistant:
             # Check if the response has parts (structured response)
             if hasattr(response, 'parts'):
                 result = []
+                has_function_call = False
+                
                 for part in response.parts:
                     # Handle text parts
                     if hasattr(part, 'text') and part.text:
@@ -50,6 +52,10 @@ class InteractiveBankingAssistant:
                         text = re.sub(r'^\s*Assistant:\s*', '', text)  # Remove "Assistant:" prefix
                         if text.strip():  # Only add non-empty text
                             result.append(text.strip())
+                    
+                    # Check if there's a function call
+                    if hasattr(part, 'function_call'):
+                        has_function_call = True
                     
                     # Handle function calls
                     if hasattr(part, 'function_call'):
@@ -96,7 +102,13 @@ class InteractiveBankingAssistant:
                                 # For RAG questions, extract the answer
                                 try:
                                     if isinstance(parsed_result, dict) and "answer" in parsed_result:
-                                        result.append(parsed_result["answer"])
+                                        answer = parsed_result["answer"]
+                                        
+                                        # Check if the answer indicates no information was found
+                                        if "I don't have information" in answer or "I don't have specific information" in answer:
+                                            result.append("I'm sorry, but I don't have specific information about that in my RBC knowledge base. I can only answer questions about RBC banking products, services, and policies. Is there something else I can help you with regarding RBC?")
+                                        else:
+                                            result.append(answer)
                                         
                                         # Optionally add sources
                                         if "sources" in parsed_result and parsed_result["sources"]:
@@ -119,6 +131,17 @@ class InteractiveBankingAssistant:
                                     result.append("I found some information but couldn't format it properly.")
                         except Exception as e:
                             result.append(f"I'm sorry, I couldn't complete that action: {str(e)}")
+                
+                # For simple greetings with no function calls, provide a friendly response
+                if not has_function_call and not result:
+                    greeting_responses = [
+                        "Hello! How can I help with your RBC banking needs today?",
+                        "Hi there! How may I assist you with your RBC accounts or services today?",
+                        "Good day! I'm here to help with your RBC banking questions.",
+                        "Welcome! How can I assist you with your RBC banking today?"
+                    ]
+                    import random
+                    return random.choice(greeting_responses)
                 
                 return "\n".join(result) if result else "Hello! How can I help you with your banking needs today?"
             else:
@@ -347,7 +370,7 @@ IMPORTANT INSTRUCTIONS:
    - Use transfer_funds for transfers when asked
    - Use get_transaction_history for transaction history when asked
 
-2. For general banking questions about products and services, use answer_banking_question.
+2. For general banking questions about RBC products and services, use answer_banking_question.
 
 3. NEVER respond with "I'm working on your request" or similar phrases.
 
@@ -360,6 +383,12 @@ IMPORTANT INSTRUCTIONS:
 7. DO NOT automatically list accounts or check balances unless specifically asked.
 
 8. For simple greetings like "hi" or "hello", just respond with a friendly greeting without calling any functions.
+
+9. If the user asks about topics unrelated to banking or RBC services, politely explain that you can only help with RBC banking matters and financial questions.
+
+10. For greetings, respond naturally without using any tools. For example:
+    - "Hi" → "Hello! How can I help with your RBC banking needs today?"
+    - "Hello" → "Hi there! How may I assist you with your RBC accounts or services today?"
 """
             
             tool_config = [{
