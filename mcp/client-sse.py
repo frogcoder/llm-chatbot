@@ -292,7 +292,7 @@ class InteractiveBankingAssistant:
             # Try to extract transfer details
             if isinstance(result, str) and "Transferred" in result:
                 return result
-            return "I've completed the transfer for you."
+            return "Your transfer has been processed."
         
         elif function_name == "get_transaction_history":
             # Format transaction history
@@ -309,8 +309,17 @@ class InteractiveBankingAssistant:
                 print(f"Error in transaction formatting: {e}")
                 return "I found your transaction history."
         
-        # Generic fallback
-        return "I've completed that action for you."
+        # More specific response based on function
+        if function_name == "transfer_funds":
+            return "Your transfer has been processed."
+        elif function_name == "get_account_balance":
+            return "I've retrieved your account balance."
+        elif function_name == "get_transaction_history":
+            return "Here's your transaction history."
+        elif function_name == "list_user_accounts":
+            return "Here are your accounts."
+        else:
+            return "I've processed your request."
     
     def _extract_rag_answer(self, result):
         """Extract the answer from a RAG result"""
@@ -346,7 +355,17 @@ class InteractiveBankingAssistant:
             # Check if function name is empty or invalid
             if not function_name or function_name.strip() == "":
                 print(f"\n⚠️ Warning: Empty function name received")
-                return {"error": "No function specified"}
+                return {"error": "No function specified", "skip_response": True}
+            
+            # Check if this is likely a non-banking query that doesn't need a function call
+            if function_name == "answer_banking_question" and args and "question" in args:
+                question = args["question"].lower()
+                non_banking_keywords = ["fix", "repair", "washing machine", "microwave", "toaster", "car", "vehicle"]
+                if any(keyword in question for keyword in non_banking_keywords):
+                    return {
+                        "answer": "I can't help with that topic. I'm designed to assist with RBC banking questions only.",
+                        "skip_function_call": True
+                    }
                 
             # Convert args from Gemini format to what MCP expects
             mcp_args = {}
@@ -404,6 +423,10 @@ class InteractiveBankingAssistant:
             
             print(f"\n🔧 Executing function: {function_name} with args: {mcp_args}")
             
+            # Check if we should skip the function call
+            if "skip_function_call" in mcp_args and mcp_args["skip_function_call"]:
+                return {"answer": "I can only help with RBC banking-related questions.", "sources": []}
+                
             # Call the function through MCP
             result = await self.session.call_tool(function_name, mcp_args)
             
@@ -703,9 +726,29 @@ IMPORTANT INSTRUCTIONS:
                 if "what account" in last_assistant_msg.lower():
                     # If the assistant asked about accounts, interpret the response in that context
                     print(f"\n🔄 Interpreting short response in context of previous question")
+                
+                # For very short, ambiguous inputs like "yo", just respond conversationally without calling functions
+                if len(user_input.strip()) <= 3 and not user_input.strip().isdigit():
+                    greeting_responses = [
+                        "Hello! How can I help with your RBC banking needs today?",
+                        "Hi there! How may I assist you with your RBC accounts or services today?",
+                        "I'm here to help with your banking needs. What can I do for you?",
+                        "Welcome! How can I assist you with your RBC banking today?"
+                    ]
+                    import random
+                    assistant_response = random.choice(greeting_responses)
+                    print("\n🔁 Assistant:")
+                    print(assistant_response)
+                    self.conversation_history.append({"role": "assistant", "content": assistant_response})
+                    return assistant_response
                     
             # Process and print response
             assistant_response = await self._process_response(response)
+            
+            # Remove any "I've completed that action for you" that might have been added
+            if "I've completed that action for you" in assistant_response:
+                assistant_response = assistant_response.replace("I've completed that action for you", "").strip()
+            
             print("\n🔁 Assistant:")
             print(assistant_response)
             
