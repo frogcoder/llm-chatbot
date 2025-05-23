@@ -9,3 +9,12 @@ sentence-transformers
 requests
 beautifulsoup4
 cryptography
+# mcp dependencies 
+mcp==0.1.11
+fastapi>=0.100.0
+uvicorn>=0.22.0
+google-generativeai>=0.3.2
+python-dotenv>=1.0.0
+
+# Optional if using Decimal and dataclasses (safe default for all Python 3.7+)
+dataclasses; python_version<"3.7"
