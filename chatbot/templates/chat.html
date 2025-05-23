@@ -20,12 +20,12 @@
 </div>
 
 <!-- Floating Chatbot Button -->
-<div id="chat-toggle" onclick="toggleChat()">
+<div id="chat-toggle" class="chat-toggle">
   <i class="fas fa-robot"></i>
 </div>
 
 <!-- Chat Popup -->
-<div id="chat-popup" class="chat-popup">
+<div id="chat-popup" class="chat-popup hidden">
   <div class="chat-header">
     <h3>💬 GRP7 Assistant</h3>
     <button onclick="toggleChat()">✖</button>
@@ -33,17 +33,17 @@
   <div id="chat-box" class="chat-box"></div>
   <div class="input-area">
     <input type="text" id="message" placeholder="Type a message..." />
-    <button onclick="sendMessage()">Send</button>
+    <button id="send-button">Send</button>
   </div>
 </div>
 
 <!-- Login Modal -->
-<div id="login-modal" class="modal">
+<div id="login-modal" class="modal hidden">
   <div class="modal-content">
     <h2>🔐 Login Required</h2>
     <input type="text" id="username" placeholder="Username" />
     <input type="password" id="password" placeholder="Password" />
-    <button onclick="submitLogin()">Login</button>
+    <button id="login-button">Login</button>
   </div>
 </div>
 
