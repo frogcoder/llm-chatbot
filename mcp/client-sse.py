@@ -47,7 +47,7 @@ Always use the appropriate tools when needed:
 """
         
         # Add conversation history
-        history = "\n\n".join([f"User: {msg['role'] == 'user' and msg['content']}" 
+        history = "\n\n".join([f"User: {msg['content']}" 
                               if msg['role'] == 'user' else f"Assistant: {msg['content']}" 
                               for msg in self.conversation_history])
         
