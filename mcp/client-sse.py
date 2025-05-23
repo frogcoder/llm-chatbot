@@ -97,8 +97,13 @@ class InteractiveBankingAssistant:
                                         result.append("I found your accounts but couldn't format them properly.")
                                 elif function_name == "transfer_funds":
                                     try:
-                                        if isinstance(parsed_result, str) and "Transferred" in parsed_result:
-                                            result.append(parsed_result)
+                                        if isinstance(parsed_result, str):
+                                            if "Transferred" in parsed_result:
+                                                result.append(parsed_result)
+                                            elif "failed" in parsed_result:
+                                                result.append(parsed_result)
+                                            else:
+                                                result.append("I've completed the transfer for you.")
                                         else:
                                             result.append("I've completed the transfer for you.")
                                     except Exception as e:
@@ -306,11 +311,57 @@ class InteractiveBankingAssistant:
             mcp_args = {}
             if args:  # Check if args is not None before iterating
                 for key, value in args.items():
-                    mcp_args[key] = value
+                    # Special handling for amount to ensure it's a string
+                    if key == "amount" and function_name == "transfer_funds":
+                        # Remove any $ sign and ensure it's a string
+                        if isinstance(value, (int, float)):
+                            mcp_args[key] = str(value)
+                        elif isinstance(value, str):
+                            # Remove $ and any commas
+                            clean_value = value.replace('$', '').replace(',', '')
+                            mcp_args[key] = clean_value
+                        else:
+                            mcp_args[key] = "0"
+                    else:
+                        mcp_args[key] = value
             
             # Add user_id automatically if not provided
             if function_name != "answer_banking_question" and "user_id" not in mcp_args:
                 mcp_args["user_id"] = self.user_id
+            
+            # Map account names to account numbers for transfer_funds
+            if function_name == "transfer_funds":
+                # Map from_account if it's a name
+                if "from_account" in mcp_args:
+                    from_acc = mcp_args["from_account"].lower()
+                    if "check" in from_acc or "chequ" in from_acc:
+                        mcp_args["from_account"] = "1234567890"
+                    elif "sav" in from_acc:
+                        mcp_args["from_account"] = "2345678901"
+                    elif "credit" in from_acc:
+                        mcp_args["from_account"] = "3456789012"
+                
+                # Map to_account if it's a name
+                if "to_account" in mcp_args:
+                    to_acc = mcp_args["to_account"].lower()
+                    if "check" in to_acc or "chequ" in to_acc:
+                        mcp_args["to_account"] = "1234567890"
+                    elif "sav" in to_acc:
+                        mcp_args["to_account"] = "2345678901"
+                    elif "credit" in to_acc:
+                        mcp_args["to_account"] = "3456789012"
+            
+            # Map account names for get_transaction_history and get_account_balance
+            if function_name in ["get_transaction_history", "get_account_balance"] and "account_number" in mcp_args:
+                acc = mcp_args["account_number"].lower()
+                if "check" in acc or "chequ" in acc:
+                    mcp_args["account_number"] = "1234567890"
+                elif "sav" in acc:
+                    mcp_args["account_number"] = "2345678901"
+                elif "credit" in acc:
+                    mcp_args["account_number"] = "3456789012"
+            
+            print(f"\n🔧 Executing function: {function_name} with args: {mcp_args}")
             
             # Call the function through MCP
             result = await self.session.call_tool(function_name, mcp_args)
@@ -430,38 +481,33 @@ NEVER say you don't have access to account information - use the tools instead.
 You are an RBC Banking Assistant helping user {self.user_id}.
 
 IMPORTANT INSTRUCTIONS:
-1. For account information and operations, use ONLY the appropriate banking tool:
-   - For checking balances: ALWAYS use get_account_balance
-   - For listing accounts: ONLY use list_user_accounts when the user explicitly asks to see their accounts
-   - For transfers: ALWAYS use transfer_funds with from_account, to_account, and amount
-   - For transaction history: ALWAYS use get_transaction_history
+1. ONLY USE ONE FUNCTION PER REQUEST. Choose the most appropriate function for each user request.
 
-2. For general banking questions about RBC products and services, ALWAYS use answer_banking_question.
+2. For account information and operations:
+   - For checking balances: use get_account_balance with account_number="1234567890" for checking or "2345678901" for savings
+   - For listing accounts: use list_user_accounts ONLY when explicitly asked to see accounts
+   - For transfers: use transfer_funds with exact account numbers and amount as a string (e.g., "50.00")
+   - For transaction history: use get_transaction_history with the exact account number
 
-3. NEVER respond with "I'm working on your request" or similar phrases.
+3. For general banking questions about RBC products and services, use answer_banking_question.
 
-4. NEVER show function calls in your responses to the user.
+4. NEVER use multiple functions for a single request.
 
-5. NEVER list accounts unless explicitly asked. Do not call list_user_accounts for operations like transfers or checking balances.
+5. For transfers, map account names to numbers:
+   - "Checking" or "Chequing" = "1234567890"
+   - "Savings" or "Saving" = "2345678901"
+   - "Credit Card" = "3456789012"
 
-6. Be helpful, concise, and professional in your responses.
+6. CRITICAL: For money transfers, ALWAYS use transfer_funds with:
+   - from_account: the exact account number (not name)
+   - to_account: the exact account number (not name)
+   - amount: the amount as a string (e.g., "50.00")
 
-7. CRITICAL: For simple greetings like "hi", "hello", "hey", etc., DO NOT USE ANY FUNCTIONS AT ALL. 
-   Just respond with a friendly greeting text. Never call answer_banking_question for greetings.
-   
-8. CRITICAL: For topics unrelated to banking or RBC services, ALWAYS use answer_banking_question to respond.
-   NEVER use transfer_funds or other banking operation functions for non-banking questions.
-   
-9. For transfers, ALWAYS extract the account numbers directly:
-   - "transfer $50 from checking to savings" → use transfer_funds with from_account="DEF456", to_account="ABC123", amount="50"
-   - Do NOT call list_user_accounts first
+7. NEVER call transfer_funds unless the user explicitly asks to transfer money.
 
-10. For transaction history, ALWAYS use get_transaction_history directly:
-    - "show me transactions for my savings" → use get_transaction_history with account_number="ABC123"
-    - Do NOT call list_user_accounts first
-    
-11. ONLY use transfer_funds when the user explicitly asks to transfer money between accounts.
-    For any other questions, including general questions about banking, use answer_banking_question.
+8. For transaction history, use get_transaction_history with the exact account number.
+
+9. NEVER call multiple functions for the same request.
 """
             
             tool_config = [{
@@ -588,13 +634,13 @@ IMPORTANT INSTRUCTIONS:
                     temperature=0
                 ),
                 tools=tool_config,
-                tool_config={"function_calling_config": {"mode": "ANY"}}
+                tool_config={"function_calling_config": {"mode": "AUTO"}}
             )
             
             # Generate content with system instructions
             response = await asyncio.to_thread(
                 model.generate_content,
-                [system_instructions, prompt]
+                [system_instructions, user_input]
             )
             
             # Process and print response

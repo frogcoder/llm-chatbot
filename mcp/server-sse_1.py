@@ -66,8 +66,16 @@ def list_target_accounts(user_id: str, from_account: str) -> list[dict]:
 def transfer_funds(user_id: str, from_account: str, to_account: str, amount: str) -> str:
     """Transfer funds from one account to another."""
     print(f"[DEBUG] transfer_funds called with user_id={user_id}, from_account={from_account}, to_account={to_account}, amount={amount}")
-    transfer_between_accounts(user_id, from_account, to_account, Decimal(amount))
-    return f"✅ Transferred {amount} from {from_account} to {to_account}."
+    try:
+        # Convert amount to Decimal, handling any formatting issues
+        clean_amount = amount.replace('$', '').replace(',', '')
+        decimal_amount = Decimal(clean_amount)
+        
+        transfer_between_accounts(user_id, from_account, to_account, decimal_amount)
+        return f"✅ Transferred ${clean_amount} from {from_account} to {to_account}."
+    except Exception as e:
+        print(f"[ERROR] Transfer failed: {str(e)}")
+        return f"❌ Transfer failed: {str(e)}"
 
 # Tool 4: Get account balance
 @mcp.tool()
