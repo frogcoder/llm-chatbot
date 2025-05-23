@@ -363,11 +363,14 @@ ALWAYS use the appropriate tools when needed:
 - For listing accounts, ONLY use list_user_accounts when explicitly asked to show accounts
 - For transfers, ALWAYS use transfer_funds with from_account, to_account, and amount
 - For transaction history, ALWAYS use get_transaction_history with the account number
-- For product/service questions, use answer_banking_question
+- For product/service questions, ALWAYS use answer_banking_question
 
 IMPORTANT: For transfers and balance checks, use the account numbers directly:
 - Savings account: ABC123
 - Checking account: DEF456
+
+CRITICAL: ONLY use transfer_funds when I explicitly ask to transfer money between accounts.
+For all other questions, including questions about banking products or services, use answer_banking_question.
 
 NEVER say you don't have access to account information - use the tools instead.
 """
@@ -390,6 +393,10 @@ NEVER say you don't have access to account information - use the tools instead.
         greeting_patterns = ["hi", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening"]
         is_simple_greeting = user_input.lower().strip() in greeting_patterns or user_input.lower().strip() + "!" in greeting_patterns
         
+        # Check if this is a transfer request
+        transfer_keywords = ["transfer", "send", "move money", "move funds"]
+        is_transfer_request = any(keyword in user_input.lower() for keyword in transfer_keywords)
+        
         # For simple greetings, respond directly without calling the model
         if is_simple_greeting:
             greeting_responses = [
@@ -404,6 +411,11 @@ NEVER say you don't have access to account information - use the tools instead.
             print(response_text)
             self.conversation_history.append({"role": "assistant", "content": response_text})
             return response_text
+        
+        # For non-banking questions, use a special flag in the prompt
+        if not is_transfer_request and "?" in user_input:
+            # Add a flag to indicate this is likely a general question
+            self.conversation_history.append({"role": "system", "content": "This appears to be a general question, not a banking operation. Use answer_banking_question for this."})
         
         # For non-greetings, build the prompt with history
         prompt = self.build_prompt(user_input)
@@ -424,7 +436,7 @@ IMPORTANT INSTRUCTIONS:
    - For transfers: ALWAYS use transfer_funds with from_account, to_account, and amount
    - For transaction history: ALWAYS use get_transaction_history
 
-2. For general banking questions about RBC products and services, use answer_banking_question.
+2. For general banking questions about RBC products and services, ALWAYS use answer_banking_question.
 
 3. NEVER respond with "I'm working on your request" or similar phrases.
 
@@ -437,8 +449,9 @@ IMPORTANT INSTRUCTIONS:
 7. CRITICAL: For simple greetings like "hi", "hello", "hey", etc., DO NOT USE ANY FUNCTIONS AT ALL. 
    Just respond with a friendly greeting text. Never call answer_banking_question for greetings.
    
-8. If the user asks about topics unrelated to banking or RBC services, politely explain that you can only help with RBC banking matters and financial questions.
-
+8. CRITICAL: For topics unrelated to banking or RBC services, ALWAYS use answer_banking_question to respond.
+   NEVER use transfer_funds or other banking operation functions for non-banking questions.
+   
 9. For transfers, ALWAYS extract the account numbers directly:
    - "transfer $50 from checking to savings" → use transfer_funds with from_account="DEF456", to_account="ABC123", amount="50"
    - Do NOT call list_user_accounts first
@@ -446,6 +459,9 @@ IMPORTANT INSTRUCTIONS:
 10. For transaction history, ALWAYS use get_transaction_history directly:
     - "show me transactions for my savings" → use get_transaction_history with account_number="ABC123"
     - Do NOT call list_user_accounts first
+    
+11. ONLY use transfer_funds when the user explicitly asks to transfer money between accounts.
+    For any other questions, including general questions about banking, use answer_banking_question.
 """
             
             tool_config = [{
