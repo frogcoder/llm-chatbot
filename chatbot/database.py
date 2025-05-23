@@ -105,7 +105,7 @@ def transfer_fund(user_id: str, from_account: str, to_account: str,
     sql_balance = "UPDATE Accounts SET Balance=balance + :amount WHERE AccountNumber=:accountNumber RETURNING Balance"
 
     transaction_number = uuid.uuid4().int
-    date_time = datetime.now()
+    date_time = datetime.now().isoformat()
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
 
@@ -176,7 +176,7 @@ def load_transactions(user_id: str, account: str, from_date: date, to_date: date
     transactions = [Transaction(
         transaction_number=t[0],
         account_number=t[1],
-        date_time=t[2],
+        date_time=datetime.fromisoformat(t[2]),
         transaction_type="Credit" if t[3] == "C" else "Debit",
         amount=t[4],
         balance_after=t[5],
