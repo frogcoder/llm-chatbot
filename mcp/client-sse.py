@@ -192,6 +192,10 @@ class InteractiveBankingAssistant:
                     import random
                     return random.choice(greeting_responses)
                 
+                # If there's an empty function call, remove the "I've completed that action for you" message
+                if has_function_call and not result:
+                    return "How can I help you with your banking needs today?"
+                
                 return "\n".join(result) if result else "Hello! How can I help you with your banking needs today?"
             else:
                 # Simple text response
@@ -309,6 +313,10 @@ class InteractiveBankingAssistant:
                 print(f"Error in transaction formatting: {e}")
                 return "I found your transaction history."
         
+        # Check if we have an error or should skip response
+        if isinstance(parsed_result, dict) and parsed_result.get("skip_response", False):
+            return ""
+                                
         # More specific response based on function
         if function_name == "transfer_funds":
             return "Your transfer has been processed."
@@ -319,7 +327,7 @@ class InteractiveBankingAssistant:
         elif function_name == "list_user_accounts":
             return "Here are your accounts."
         else:
-            return "I've processed your request."
+            return ""  # Return empty string to avoid generic messages
     
     def _extract_rag_answer(self, result):
         """Extract the answer from a RAG result"""
@@ -355,15 +363,30 @@ class InteractiveBankingAssistant:
             # Check if function name is empty or invalid
             if not function_name or function_name.strip() == "":
                 print(f"\n⚠️ Warning: Empty function name received")
-                return {"error": "No function specified", "skip_response": True}
+                # Return a response that won't trigger "I've completed that action for you"
+                return {
+                    "content": "No valid function specified",
+                    "skip_response": True,
+                    "error": True
+                }
             
-            # Check if this is likely a non-banking query that doesn't need a function call
+            # Check for ambiguous or non-banking queries
+            ambiguous_inputs = ["yo", "sup", "hey", "hi", "hello"]
             if function_name == "answer_banking_question" and args and "question" in args:
                 question = args["question"].lower()
+                
+                # Check for non-banking keywords
                 non_banking_keywords = ["fix", "repair", "washing machine", "microwave", "toaster", "car", "vehicle"]
                 if any(keyword in question for keyword in non_banking_keywords):
                     return {
-                        "answer": "I can't help with that topic. I'm designed to assist with RBC banking questions only.",
+                        "answer": "I can only help with RBC banking-related questions.",
+                        "skip_function_call": True
+                    }
+                
+                # Check for ambiguous inputs that shouldn't trigger function calls
+                if question.strip() in ambiguous_inputs or len(question.strip()) <= 3:
+                    return {
+                        "answer": "How can I help you with your banking needs today?",
                         "skip_function_call": True
                     }
                 
@@ -704,6 +727,7 @@ IMPORTANT INSTRUCTIONS:
                     temperature=0.1  # Slight increase in temperature for more natural responses
                 ),
                 tools=tool_config,
+                # Use NONE for ambiguous queries to prevent unnecessary function calls
                 tool_config={"function_calling_config": {"mode": "AUTO"}}
             )
             
@@ -726,28 +750,35 @@ IMPORTANT INSTRUCTIONS:
                 if "what account" in last_assistant_msg.lower():
                     # If the assistant asked about accounts, interpret the response in that context
                     print(f"\n🔄 Interpreting short response in context of previous question")
-                
-                # For very short, ambiguous inputs like "yo", just respond conversationally without calling functions
-                if len(user_input.strip()) <= 3 and not user_input.strip().isdigit():
-                    greeting_responses = [
-                        "Hello! How can I help with your RBC banking needs today?",
-                        "Hi there! How may I assist you with your RBC accounts or services today?",
-                        "I'm here to help with your banking needs. What can I do for you?",
-                        "Welcome! How can I assist you with your RBC banking today?"
-                    ]
-                    import random
-                    assistant_response = random.choice(greeting_responses)
-                    print("\n🔁 Assistant:")
-                    print(assistant_response)
-                    self.conversation_history.append({"role": "assistant", "content": assistant_response})
-                    return assistant_response
+            
+            # For very short, ambiguous inputs like "yo", just respond conversationally without calling functions
+            if len(user_input.strip()) <= 3 and not user_input.strip().isdigit():
+                greeting_responses = [
+                    "Hello! How can I help with your RBC banking needs today?",
+                    "Hi there! How may I assist you with your RBC accounts or services today?",
+                    "I'm here to help with your banking needs. What can I do for you?",
+                    "Welcome! How can I assist you with your RBC banking today?"
+                ]
+                import random
+                assistant_response = random.choice(greeting_responses)
+                print("\n🔁 Assistant:")
+                print(assistant_response)
+                self.conversation_history.append({"role": "assistant", "content": assistant_response})
+                return assistant_response
                     
             # Process and print response
             assistant_response = await self._process_response(response)
             
-            # Remove any "I've completed that action for you" that might have been added
-            if "I've completed that action for you" in assistant_response:
-                assistant_response = assistant_response.replace("I've completed that action for you", "").strip()
+            # Remove any generic action completion messages
+            generic_responses = [
+                "I've completed that action for you.",
+                "I've processed your request.",
+                "I've completed the transfer for you."
+            ]
+            
+            for generic in generic_responses:
+                if generic in assistant_response:
+                    assistant_response = assistant_response.replace(generic, "").strip()
             
             print("\n🔁 Assistant:")
             print(assistant_response)
