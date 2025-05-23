@@ -61,39 +61,62 @@ class InteractiveBankingAssistant:
                             # Call the function through the MCP session and await the result
                             function_result = await self._execute_function_call(function_name, func_call.args)
                             
+                            # Parse the function result to extract actual data
+                            parsed_result = self._parse_function_result(function_result)
+                            
                             # If we got a result from a banking function, format it nicely for the user
                             if function_name != "answer_banking_question":
                                 # For account-related functions, format a nice response
                                 if function_name == "get_account_balance":
                                     try:
-                                        if isinstance(function_result, dict) and "balance" in function_result:
-                                            result.append(f"Your {function_result.get('account_name', '')} account ({function_result.get('account_number', '')}) has a balance of {function_result.get('balance', '')} {function_result.get('currency', '')}.")
+                                        if isinstance(parsed_result, dict) and "balance" in parsed_result:
+                                            result.append(f"Your {parsed_result.get('account_name', '')} account ({parsed_result.get('account_number', '')}) has a balance of {parsed_result.get('balance', '')} {parsed_result.get('currency', '')}.")
                                         else:
-                                            result.append(f"I found your account information: {function_result}")
-                                    except:
-                                        result.append(f"I found your account information: {function_result}")
+                                            # Try to extract from the content if it's a complex object
+                                            result.append(self._format_account_balance(parsed_result))
+                                    except Exception as e:
+                                        print(f"Error formatting balance: {e}")
+                                        result.append(self._format_account_balance(parsed_result))
                                 elif function_name == "list_user_accounts":
                                     try:
-                                        if isinstance(function_result, list):
+                                        accounts = self._extract_accounts(parsed_result)
+                                        if accounts and len(accounts) > 0:
                                             result.append("Here are your accounts:")
-                                            for account in function_result:
+                                            for account in accounts:
                                                 result.append(f"- {account.get('account_name', 'Account')} ({account.get('account_number', '')})")
                                         else:
-                                            result.append(f"I found your accounts: {function_result}")
-                                    except:
-                                        result.append(f"I found your accounts: {function_result}")
+                                            result.append("You don't have any accounts set up yet.")
+                                    except Exception as e:
+                                        print(f"Error formatting accounts: {e}")
+                                        result.append("I found your accounts but couldn't format them properly.")
                                 else:
                                     # Generic handling for other functions
-                                    result.append(f"I've completed that action for you: {function_result}")
+                                    result.append(self._format_generic_result(function_name, parsed_result))
                             else:
                                 # For RAG questions, extract the answer
                                 try:
-                                    if isinstance(function_result, dict) and "answer" in function_result:
-                                        result.append(function_result["answer"])
+                                    if isinstance(parsed_result, dict) and "answer" in parsed_result:
+                                        result.append(parsed_result["answer"])
+                                        
+                                        # Optionally add sources
+                                        if "sources" in parsed_result and parsed_result["sources"]:
+                                            sources = parsed_result["sources"]
+                                            if len(sources) == 1:
+                                                result.append(f"\nSource: {sources[0]}")
+                                            elif len(sources) > 1:
+                                                result.append("\nSources:")
+                                                for source in sources:
+                                                    result.append(f"- {source}")
                                     else:
-                                        result.append(str(function_result))
-                                except:
-                                    result.append(str(function_result))
+                                        # Try to extract answer from complex object
+                                        answer = self._extract_rag_answer(parsed_result)
+                                        if answer:
+                                            result.append(answer)
+                                        else:
+                                            result.append("I couldn't find specific information about that in my knowledge base.")
+                                except Exception as e:
+                                    print(f"Error formatting RAG answer: {e}")
+                                    result.append("I found some information but couldn't format it properly.")
                         except Exception as e:
                             result.append(f"I'm sorry, I couldn't complete that action: {str(e)}")
                 
@@ -103,6 +126,124 @@ class InteractiveBankingAssistant:
                 return response.text
         except Exception as e:
             return f"Error processing response: {str(e)}"
+    
+    def _parse_function_result(self, result):
+        """Parse the function result to extract the actual data"""
+        try:
+            # Check if result has content attribute (MCP response format)
+            if hasattr(result, 'content') and result.content:
+                # Extract text content
+                text_contents = []
+                for content in result.content:
+                    if hasattr(content, 'text'):
+                        text_contents.append(content.text)
+                
+                # Try to parse each text content as JSON
+                parsed_contents = []
+                for text in text_contents:
+                    try:
+                        parsed_contents.append(json.loads(text))
+                    except:
+                        parsed_contents.append(text)
+                
+                # Return the parsed contents
+                if len(parsed_contents) == 1:
+                    return parsed_contents[0]
+                return parsed_contents
+            
+            # If it's a dictionary or list, return as is
+            if isinstance(result, (dict, list)):
+                return result
+            
+            # If it's a string that looks like JSON, parse it
+            if isinstance(result, str):
+                try:
+                    if result.strip().startswith('{') or result.strip().startswith('['):
+                        return json.loads(result)
+                except:
+                    pass
+            
+            # Return as is if we couldn't parse it
+            return result
+        except Exception as e:
+            print(f"Error parsing function result: {e}")
+            return result
+    
+    def _extract_accounts(self, result):
+        """Extract accounts from a complex result object"""
+        accounts = []
+        
+        # If result is a list of dictionaries
+        if isinstance(result, list):
+            for item in result:
+                if isinstance(item, dict) and 'account_name' in item and 'account_number' in item:
+                    accounts.append(item)
+        
+        # If result is a dictionary with account info
+        elif isinstance(result, dict) and 'account_name' in result and 'account_number' in result:
+            accounts.append(result)
+        
+        return accounts
+    
+    def _format_account_balance(self, result):
+        """Format account balance information from a complex result"""
+        try:
+            # If it's a dictionary with balance info
+            if isinstance(result, dict):
+                if 'balance' in result:
+                    return f"Your {result.get('account_name', 'account')} ({result.get('account_number', '')}) has a balance of {result.get('balance', '')} {result.get('currency', 'CAD')}."
+            
+            # If it's a list, try to find the first item with balance info
+            if isinstance(result, list):
+                for item in result:
+                    if isinstance(item, dict) and 'balance' in item:
+                        return f"Your {item.get('account_name', 'account')} ({item.get('account_number', '')}) has a balance of {item.get('balance', '')} {item.get('currency', 'CAD')}."
+            
+            # If we couldn't extract structured data, return a generic message
+            return "I found your account balance information."
+        except:
+            return "I found your account balance information."
+    
+    def _format_generic_result(self, function_name, result):
+        """Format a generic function result in a user-friendly way"""
+        if function_name == "transfer_funds":
+            # Try to extract transfer details
+            if isinstance(result, str) and "Transferred" in result:
+                return result
+            return "I've completed the transfer for you."
+        
+        elif function_name == "get_transaction_history":
+            # Format transaction history
+            try:
+                if isinstance(result, list) and len(result) > 0:
+                    return f"I found {len(result)} recent transactions for your account."
+                return "I couldn't find any transactions for your account."
+            except:
+                return "I found your transaction history."
+        
+        # Generic fallback
+        return "I've completed that action for you."
+    
+    def _extract_rag_answer(self, result):
+        """Extract the answer from a RAG result"""
+        try:
+            # If it's a dictionary with an answer
+            if isinstance(result, dict) and 'answer' in result:
+                return result['answer']
+            
+            # If it's a list, try to find the first item with an answer
+            if isinstance(result, list):
+                for item in result:
+                    if isinstance(item, dict) and 'answer' in item:
+                        return item['answer']
+            
+            # If it's a string, return it directly
+            if isinstance(result, str):
+                return result
+            
+            return None
+        except:
+            return None
     
     async def _execute_function_call(self, function_name, args):
         """Execute a function call through the MCP session"""
@@ -200,21 +341,25 @@ NEVER say you don't have access to account information - use the tools instead.
 You are an RBC Banking Assistant helping user {self.user_id}.
 
 IMPORTANT INSTRUCTIONS:
-1. For account information (balances, transfers, etc.), ALWAYS use the appropriate banking tool:
-   - Use get_account_balance to check balances
-   - Use list_user_accounts to list accounts
-   - Use transfer_funds for transfers
-   - Use get_transaction_history for transaction history
+1. For account information (balances, transfers, etc.), use the appropriate banking tool ONLY when the user specifically asks for this information:
+   - Use get_account_balance to check balances when asked
+   - Use list_user_accounts to list accounts when asked
+   - Use transfer_funds for transfers when asked
+   - Use get_transaction_history for transaction history when asked
 
-2. For general banking questions about products and services, ALWAYS use answer_banking_question.
+2. For general banking questions about products and services, use answer_banking_question.
 
 3. NEVER respond with "I'm working on your request" or similar phrases.
 
 4. NEVER show function calls in your responses to the user.
 
-5. If the user asks about account information, ALWAYS use the appropriate tool rather than saying you don't have access.
+5. If the user asks about account information, use the appropriate tool rather than saying you don't have access.
 
 6. Be helpful, concise, and professional in your responses.
+
+7. DO NOT automatically list accounts or check balances unless specifically asked.
+
+8. For simple greetings like "hi" or "hello", just respond with a friendly greeting without calling any functions.
 """
             
             tool_config = [{
