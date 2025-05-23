@@ -1,3 +1,14 @@
+google-generativeai
+python-dotenv
+langchain
+langchain-google-genai
+langchain-chroma
+chromadb
+pypdf
+sentence-transformers
+requests
+beautifulsoup4
+cryptography
 # mcp dependencies 
 mcp==0.1.11
 fastapi>=0.100.0

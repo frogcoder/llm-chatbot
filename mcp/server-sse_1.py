@@ -1,12 +1,38 @@
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from decimal import Decimal
+import os
+import sys
+
+# Add the parent directory to the Python path to import from src
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import RAG components
+from src.rag_chatbot import RBCChatbot
 
 # Load environment variables from .env file
 load_dotenv("../.env")
 
+# Initialize the RAG chatbot
+chatbot = RBCChatbot()
+
 # Create the MCP server
-mcp = FastMCP(name="BankMCP", host="127.0.0.1", port=8050)
+mcp = FastMCP(name="RBC-RAG-MCP", host="127.0.0.1", port=8050)
+
+# RAG Tool: Answer questions using the RAG system
+@mcp.tool()
+def answer_banking_question(question: str) -> dict:
+    """
+    Answer a banking question using the RAG system with RBC documentation.
+    Returns the answer and sources.
+    """
+    print(f"[RAG] Processing question: {question}")
+    result = chatbot.answer_question(question)
+    print(f"[RAG] Found answer with {len(result['sources'])} sources")
+    return {
+        "answer": result["answer"],
+        "sources": result["sources"]
+    }
 
 # Tool 1: List all accounts belonging to a user
 @mcp.tool()
