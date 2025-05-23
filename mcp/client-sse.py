@@ -351,7 +351,26 @@ NEVER say you don't have access to account information - use the tools instead.
         # Add user message to history
         self.conversation_history.append({"role": "user", "content": user_input})
         
-        # Build the prompt with history
+        # Check if this is a simple greeting
+        greeting_patterns = ["hi", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening"]
+        is_simple_greeting = user_input.lower().strip() in greeting_patterns or user_input.lower().strip() + "!" in greeting_patterns
+        
+        # For simple greetings, respond directly without calling the model
+        if is_simple_greeting:
+            greeting_responses = [
+                "Hello! How can I help with your RBC banking needs today?",
+                "Hi there! How may I assist you with your RBC accounts or services today?",
+                "Good day! I'm here to help with your RBC banking questions.",
+                "Welcome! How can I assist you with your RBC banking today?"
+            ]
+            import random
+            response_text = random.choice(greeting_responses)
+            print("\n🔁 Assistant:")
+            print(response_text)
+            self.conversation_history.append({"role": "assistant", "content": response_text})
+            return response_text
+        
+        # For non-greetings, build the prompt with history
         prompt = self.build_prompt(user_input)
         
         try:
@@ -382,11 +401,12 @@ IMPORTANT INSTRUCTIONS:
 
 7. DO NOT automatically list accounts or check balances unless specifically asked.
 
-8. For simple greetings like "hi" or "hello", just respond with a friendly greeting without calling any functions.
-
+8. CRITICAL: For simple greetings like "hi", "hello", "hey", etc., DO NOT USE ANY FUNCTIONS AT ALL. 
+   Just respond with a friendly greeting text. Never call answer_banking_question for greetings.
+   
 9. If the user asks about topics unrelated to banking or RBC services, politely explain that you can only help with RBC banking matters and financial questions.
 
-10. For greetings, respond naturally without using any tools. For example:
+10. For greetings, respond naturally without using any tools or functions. For example:
     - "Hi" → "Hello! How can I help with your RBC banking needs today?"
     - "Hello" → "Hi there! How may I assist you with your RBC accounts or services today?"
 """
