@@ -120,21 +120,27 @@ def get_transaction_history(user_id: str, account_number: str, days: int = 30) -
     today = datetime.datetime.now()
     start_date = (today - datetime.timedelta(days=days)).isoformat()
     
-    # Query for transactions
+    # Query for transactions with balances
     cur.execute("""
-        SELECT TransactionNumber, TransferDateTime, 
-               CASE 
-                   WHEN FromAccountNumber = :account_number THEN 'debit' 
-                   ELSE 'credit' 
-               END as transaction_type,
-               CASE 
-                   WHEN FromAccountNumber = :account_number THEN -Amount 
-                   ELSE Amount 
-               END as amount,
-               CASE 
-                   WHEN FromAccountNumber = :account_number THEN 'Transfer to ' || ToAccountNumber
-                   ELSE 'Transfer from ' || FromAccountNumber
-               END as description
+        SELECT 
+            TransactionNumber, 
+            TransferDateTime, 
+            CASE 
+                WHEN FromAccountNumber = :account_number THEN 'debit' 
+                ELSE 'credit' 
+            END as transaction_type,
+            CASE 
+                WHEN FromAccountNumber = :account_number THEN -Amount 
+                ELSE Amount 
+            END as amount,
+            CASE 
+                WHEN FromAccountNumber = :account_number THEN 'Transfer to ' || ToAccountNumber
+                ELSE 'Transfer from ' || FromAccountNumber
+            END as description,
+            CASE 
+                WHEN FromAccountNumber = :account_number THEN FromAccountBalance
+                ELSE ToAccountBalance
+            END as balance_after
         FROM Transfers
         WHERE (FromAccountNumber = :account_number OR ToAccountNumber = :account_number)
         AND TransferDateTime >= :start_date
@@ -143,27 +149,11 @@ def get_transaction_history(user_id: str, account_number: str, days: int = 30) -
     
     rows = cur.fetchall()
     
-    # Get the current balance
-    accounts = list_accounts(user_id)
-    current_balance = None
-    for account in accounts:
-        if account.account_number == account_number:
-            current_balance = account.balance
-            break
-    
-    # Create transaction objects
+    # Create transaction objects using stored balances
     transactions = []
-    running_balance = current_balance if current_balance is not None else Decimal("0")
     
     for row in rows:
         amount = Decimal(str(row['amount']))
-        
-        # For display purposes, adjust the running balance
-        if row['transaction_type'] == 'debit':
-            # For past transactions, we add the amount back since we're going backwards in time
-            running_balance = running_balance - amount
-        else:
-            running_balance = running_balance + amount
         
         transaction = {
             "transaction_id": row['TransactionNumber'],
@@ -171,7 +161,7 @@ def get_transaction_history(user_id: str, account_number: str, days: int = 30) -
             "description": row['description'],
             "amount": str(amount),
             "transaction_type": row['transaction_type'],
-            "balance_after": str(running_balance)
+            "balance_after": str(row['balance_after'])
         }
         transactions.append(transaction)
     

@@ -117,7 +117,16 @@ def transfer_fund_between_accounts(user_id: str,
             (amount_str, user_id, to_account)
         )
         
-        # Record the transfer
+        # Get the updated balances after the transfer
+        cur.execute("SELECT Balance FROM Accounts WHERE UserId=? AND AccountNumber=?", 
+                   (user_id, from_account))
+        from_account_balance = cur.fetchone()[0]
+        
+        cur.execute("SELECT Balance FROM Accounts WHERE UserId=? AND AccountNumber=?", 
+                   (user_id, to_account))
+        to_account_balance = cur.fetchone()[0]
+        
+        # Record the transfer with balances
         import uuid
         import datetime
         transaction_id = str(uuid.uuid4())
@@ -125,10 +134,14 @@ def transfer_fund_between_accounts(user_id: str,
         
         cur.execute(
             """
-            INSERT INTO Transfers (TransactionNumber, FromAccountNumber, ToAccountNumber, TransferDateTime, Amount)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO Transfers (
+                TransactionNumber, FromAccountNumber, ToAccountNumber, 
+                TransferDateTime, Amount, FromAccountBalance, ToAccountBalance
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (transaction_id, from_account, to_account, current_time, amount_str)
+            (transaction_id, from_account, to_account, current_time, 
+             amount_str, from_account_balance, to_account_balance)
         )
         
         # Commit the transaction

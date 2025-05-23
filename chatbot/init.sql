@@ -16,6 +16,8 @@ CREATE TABLE Transfers (
   ToAccountNumber   Text    NOT NULL,
   TransferDateTime  Text    NOT NULL,
   Amount            NUMERIC NOT NULL,
+  FromAccountBalance NUMERIC NOT NULL,
+  ToAccountBalance   NUMERIC NOT NULL,
   FOREIGN KEY(FromAccountNumber) REFERENCES Accounts(AccountNumber),
   FOREIGN KEY(ToAccountNumber)   REFERENCES Accounts(AccountNumber)
 );
