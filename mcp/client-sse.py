@@ -314,7 +314,7 @@ class InteractiveBankingAssistant:
                 return "I found your transaction history."
         
         # Check if we have an error or should skip response
-        if isinstance(parsed_result, dict) and parsed_result.get("skip_response", False):
+        if isinstance(result, dict) and result.get("skip_response", False):
             return ""
                                 
         # More specific response based on function
