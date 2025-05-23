@@ -19,7 +19,8 @@ class InteractiveBankingAssistant:
     
     async def initialize_session(self):
         """Initialize the MCP session"""
-        self.read_stream, self.write_stream = await sse_client("http://127.0.0.1:8050/sse").__aenter__()
+        self.sse_client = sse_client("http://127.0.0.1:8050/sse")
+        self.read_stream, self.write_stream = await self.sse_client.__aenter__()
         self.session = ClientSession(self.read_stream, self.write_stream)
         await self.session.__aenter__()
         await self.session.initialize()
@@ -29,8 +30,8 @@ class InteractiveBankingAssistant:
         """Close the MCP session"""
         if self.session:
             await self.session.__aexit__(None, None, None)
-        if self.read_stream and self.write_stream:
-            await sse_client("http://127.0.0.1:8050/sse").__aexit__(None, None, None)
+        if hasattr(self, 'sse_client'):
+            await self.sse_client.__aexit__(None, None, None)
     
     def build_prompt(self, user_input):
         """Build the prompt with conversation history"""
@@ -90,44 +91,58 @@ Always use the appropriate tools when needed:
     
     async def run_interactive(self):
         """Run the assistant in interactive mode"""
-        await self.initialize_session()
-        
-        print("\n🏦 RBC Banking Assistant")
-        print("Type 'exit' to quit, 'clear' to clear conversation history")
-        print("Type 'user <id>' to change user ID (current: " + self.user_id + ")")
-        
         try:
+            await self.initialize_session()
+            
+            print("\n🏦 RBC Banking Assistant")
+            print("Type 'exit' to quit, 'clear' to clear conversation history")
+            print("Type 'user <id>' to change user ID (current: " + self.user_id + ")")
+            
             while True:
-                user_input = input("\n💬 You: ")
-                
-                if user_input.lower() in ['exit', 'quit', 'q']:
-                    print("Goodbye! Thank you for using RBC Banking Assistant.")
+                try:
+                    user_input = input("\n💬 You: ")
+                    
+                    if user_input.lower() in ['exit', 'quit', 'q']:
+                        print("Goodbye! Thank you for using RBC Banking Assistant.")
+                        break
+                    
+                    elif user_input.lower() == 'clear':
+                        self.conversation_history = []
+                        print("Conversation history cleared.")
+                        continue
+                    
+                    elif user_input.lower().startswith('user '):
+                        # Change user ID
+                        new_user_id = user_input[5:].strip()
+                        if new_user_id:
+                            self.user_id = new_user_id
+                            print(f"User ID changed to: {self.user_id}")
+                        else:
+                            print(f"Current user ID: {self.user_id}")
+                        continue
+                    
+                    # Normal message
+                    await self.send_message(user_input)
+                except KeyboardInterrupt:
+                    print("\nInterrupted. Exiting...")
                     break
-                
-                elif user_input.lower() == 'clear':
-                    self.conversation_history = []
-                    print("Conversation history cleared.")
-                    continue
-                
-                elif user_input.lower().startswith('user '):
-                    # Change user ID
-                    new_user_id = user_input[5:].strip()
-                    if new_user_id:
-                        self.user_id = new_user_id
-                        print(f"User ID changed to: {self.user_id}")
-                    else:
-                        print(f"Current user ID: {self.user_id}")
-                    continue
-                
-                # Normal message
-                await self.send_message(user_input)
-                
+                except Exception as e:
+                    print(f"\n❌ Error: {str(e)}")
+                    print("Continuing...")
         finally:
+            print("\nClosing connection...")
             await self.close_session()
 
 async def main():
-    assistant = InteractiveBankingAssistant()
-    await assistant.run_interactive()
+    try:
+        assistant = InteractiveBankingAssistant()
+        await assistant.run_interactive()
+    except Exception as e:
+        print(f"\n❌ Fatal error: {str(e)}")
+        print("The assistant has encountered an unrecoverable error and must exit.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nProgram terminated by user.")
