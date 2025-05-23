@@ -111,15 +111,34 @@ class InteractiveBankingAssistant:
                                         result.append("The transfer has been processed.")
                                 elif function_name == "get_transaction_history":
                                     try:
+                                        # Handle both list and single transaction object formats
+                                        transactions = []
+                                        
                                         if isinstance(parsed_result, list):
+                                            transactions = parsed_result
+                                        elif isinstance(parsed_result, dict):
+                                            # Single transaction as a dict
+                                            transactions = [parsed_result]
+                                        elif isinstance(parsed_result, str):
+                                            # Try to parse JSON string
+                                            try:
+                                                json_data = json.loads(parsed_result)
+                                                if isinstance(json_data, list):
+                                                    transactions = json_data
+                                                elif isinstance(json_data, dict):
+                                                    transactions = [json_data]
+                                            except:
+                                                pass
+                                        
+                                        if transactions and len(transactions) > 0:
                                             result.append(f"Here are the recent transactions for your account:")
-                                            for i, transaction in enumerate(parsed_result[:5]):  # Show only first 5 transactions
+                                            for i, transaction in enumerate(transactions[:5]):  # Show only first 5 transactions
                                                 date = transaction.get('date', 'Unknown date')
                                                 desc = transaction.get('description', 'Transaction')
                                                 amount = transaction.get('amount', '0.00')
                                                 result.append(f"- {date}: {desc} - {amount}")
-                                            if len(parsed_result) > 5:
-                                                result.append(f"...and {len(parsed_result) - 5} more transactions.")
+                                            if len(transactions) > 5:
+                                                result.append(f"...and {len(transactions) - 5} more transactions.")
                                         else:
                                             result.append("I couldn't find any transactions for this account.")
                                     except Exception as e:
@@ -199,9 +218,15 @@ class InteractiveBankingAssistant:
                     except:
                         parsed_contents.append(text)
                 
-                # Return the parsed contents
+                # Special handling for get_transaction_history
+                # If we have a single transaction object, wrap it in a list
                 if len(parsed_contents) == 1:
-                    return parsed_contents[0]
+                    content = parsed_contents[0]
+                    # Check if this looks like a transaction object
+                    if isinstance(content, dict) and all(key in content for key in ['transaction_id', 'date', 'description']):
+                        return [content]
+                    return content
+                
                 return parsed_contents
             
             # If it's a dictionary or list, return as is
@@ -212,7 +237,11 @@ class InteractiveBankingAssistant:
             if isinstance(result, str):
                 try:
                     if result.strip().startswith('{') or result.strip().startswith('['):
-                        return json.loads(result)
+                        parsed = json.loads(result)
+                        # Special handling for transaction objects
+                        if isinstance(parsed, dict) and all(key in parsed for key in ['transaction_id', 'date', 'description']):
+                            return [parsed]
+                        return parsed
                 except:
                     pass
             
