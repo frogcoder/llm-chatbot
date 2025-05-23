@@ -2,9 +2,7 @@ import sqlite3
 from decimal import Decimal
 from pathlib import Path
 from chatbot.models import Account
-
-
-DB_FILE = "bank.db"
+from chatbot.config import DB_FILE, DB_INIT_SQL
 
 
 def auth_user(user_id: str, password: str) -> bool:
@@ -176,8 +174,7 @@ def init_db():
             return
     
     # Create and initialize the database
-    sql_path = Path(__file__).parent / "init.sql"
-    with open(sql_path) as sql_file:
+    with open(DB_INIT_SQL) as sql_file:
         sql = sql_file.read()
         con = sqlite3.connect(DB_FILE)
         cur = con.cursor()

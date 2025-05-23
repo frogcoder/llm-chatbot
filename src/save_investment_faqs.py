@@ -44,8 +44,11 @@ if __name__ == "__main__":
     # URL of the RBC Investment FAQs
     url = "https://www.rbcroyalbank.com/investments/investment-faqs.html"
     
+    from chatbot.config import DOCS_DIRECTORY
+    import os
+    
     # Output file path
-    output_path = "./rbc_documents/rbc_investment_faqs.txt"
+    output_path = os.path.join(DOCS_DIRECTORY, "rbc_investment_faqs.txt")
     
     # Download and save the webpage
     success = save_webpage_as_text(url, output_path)

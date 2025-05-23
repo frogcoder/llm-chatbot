@@ -25,8 +25,11 @@ init_db()
 # Initialize the RAG chatbot
 chatbot = RBCChatbot()
 
+# Import configuration
+from chatbot.config import MCP_NAME, MCP_HOST, MCP_PORT, DEFAULT_USER_ID
+
 # Create the MCP server
-mcp = FastMCP(name="RBC-RAG-MCP", host="127.0.0.1", port=8050)
+mcp = FastMCP(name=MCP_NAME, host=MCP_HOST, port=MCP_PORT)
 
 # RAG Tool: Answer questions using the RAG system
 @mcp.tool()

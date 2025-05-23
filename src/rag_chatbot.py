@@ -28,7 +28,12 @@ class RBCChatbot:
             cls._instance._initialized = False
         return cls._instance
     
-    def __init__(self, persist_directory="./chroma_db"):
+    def __init__(self, persist_directory=None):
+        from chatbot.config import VECTOR_DB_DIR
+        
+        # Use config value if persist_directory is not provided
+        if persist_directory is None:
+            persist_directory = VECTOR_DB_DIR
         # Only initialize once
         if getattr(self, '_initialized', False):
             return
@@ -61,15 +66,16 @@ class RBCChatbot:
     
     def _ensure_vector_store_exists(self, persist_directory):
         """Make sure the vector store exists, create it if it doesn't"""
+        from chatbot.config import DOCS_DIRECTORY
+        
         if not os.path.exists(persist_directory):
             print("Vector store not found. Creating new vector store...")
-            docs_directory = "./rbc_documents"
-            if os.path.exists(docs_directory):
-                documents = load_documents(docs_directory)
+            if os.path.exists(DOCS_DIRECTORY):
+                documents = load_documents(DOCS_DIRECTORY)
                 chunks = split_documents(documents)
                 create_vector_store(chunks, persist_directory)
             else:
-                print(f"Warning: Documents directory {docs_directory} not found.")
+                print(f"Warning: Documents directory {DOCS_DIRECTORY} not found.")
                 print("Creating empty vector store.")
                 # Create an empty vector store
                 create_vector_store([], persist_directory)

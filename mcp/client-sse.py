@@ -13,11 +13,14 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class InteractiveBankingAssistant:
     def __init__(self):
+        from chatbot.config import DEFAULT_USER_ID, ACCOUNT_MAPPINGS
+        
         self.conversation_history = []
-        self.user_id = "test1"  # Default user ID from the database
+        self.user_id = DEFAULT_USER_ID
         self.session = None
         self.read_stream = None
         self.write_stream = None
+        self.account_mappings = ACCOUNT_MAPPINGS
     
     async def initialize_session(self):
         """Initialize the MCP session"""
@@ -417,32 +420,26 @@ class InteractiveBankingAssistant:
                 # Map from_account if it's a name
                 if "from_account" in mcp_args:
                     from_acc = mcp_args["from_account"].lower()
-                    if "check" in from_acc or "chequ" in from_acc:
-                        mcp_args["from_account"] = "1234567890"
-                    elif "sav" in from_acc:
-                        mcp_args["from_account"] = "2345678901"
-                    elif "credit" in from_acc:
-                        mcp_args["from_account"] = "3456789012"
+                    for key, value in self.account_mappings.items():
+                        if key in from_acc:
+                            mcp_args["from_account"] = value
+                            break
                 
                 # Map to_account if it's a name
                 if "to_account" in mcp_args:
                     to_acc = mcp_args["to_account"].lower()
-                    if "check" in to_acc or "chequ" in to_acc:
-                        mcp_args["to_account"] = "1234567890"
-                    elif "sav" in to_acc:
-                        mcp_args["to_account"] = "2345678901"
-                    elif "credit" in to_acc:
-                        mcp_args["to_account"] = "3456789012"
+                    for key, value in self.account_mappings.items():
+                        if key in to_acc:
+                            mcp_args["to_account"] = value
+                            break
             
             # Map account names for get_transaction_history and get_account_balance
             if function_name in ["get_transaction_history", "get_account_balance"] and "account_number" in mcp_args:
                 acc = mcp_args["account_number"].lower()
-                if "check" in acc or "chequ" in acc:
-                    mcp_args["account_number"] = "1234567890"
-                elif "sav" in acc:
-                    mcp_args["account_number"] = "2345678901"
-                elif "credit" in acc:
-                    mcp_args["account_number"] = "3456789012"
+                for key, value in self.account_mappings.items():
+                    if key in acc:
+                        mcp_args["account_number"] = value
+                        break
             
             print(f"\n🔧 Executing function: {function_name} with args: {mcp_args}")
             

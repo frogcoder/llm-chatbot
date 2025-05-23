@@ -12,7 +12,11 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY not found in environment variables")
 genai.configure(api_key=api_key)
 
-def create_vector_store(documents, persist_directory="./chroma_db"):
+from chatbot.config import VECTOR_DB_DIR
+
+def create_vector_store(documents, persist_directory=None):
+    if persist_directory is None:
+        persist_directory = VECTOR_DB_DIR
     """Create a vector store from document chunks"""
     # Initialize the embeddings using Gemini with explicit API key
     embeddings = GoogleGenerativeAIEmbeddings(
@@ -30,7 +34,9 @@ def create_vector_store(documents, persist_directory="./chroma_db"):
     print(f"Vector store persisted to {persist_directory}")
     return vector_store
 
-def load_vector_store(persist_directory="./chroma_db"):
+def load_vector_store(persist_directory=None):
+    if persist_directory is None:
+        persist_directory = VECTOR_DB_DIR
     """Load an existing vector store"""
     # Use the same API key as in create_vector_store
     embeddings = GoogleGenerativeAIEmbeddings(

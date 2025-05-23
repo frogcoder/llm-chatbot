@@ -4,23 +4,22 @@ from rag_chatbot import RBCChatbot
 import os
 import sys
 
-def initialize_database(docs_directory):
+def initialize_database():
     """Initialize the vector database if it doesn't exist"""
-    if not os.path.exists("./chroma_db"):
+    from chatbot.config import VECTOR_DB_DIR, DOCS_DIRECTORY
+    
+    if not os.path.exists(VECTOR_DB_DIR):
         print("Creating vector database...")
-        documents = load_documents(docs_directory)
+        documents = load_documents(DOCS_DIRECTORY)
         chunks = split_documents(documents)
-        create_vector_store(chunks)
+        create_vector_store(chunks, VECTOR_DB_DIR)
         print("Vector database created successfully!")
     else:
         print("Using existing vector database.")
 
 def main():
-    # Path to your RBC documents
-    docs_directory = "./rbc_documents"  # Update this to your actual path
-    
     # Initialize the database if needed
-    initialize_database(docs_directory)
+    initialize_database()
     
     # Create the chatbot
     chatbot = RBCChatbot()
