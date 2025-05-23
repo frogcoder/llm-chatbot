@@ -13,6 +13,15 @@ class IntentDetector:
         return any(domain in text_lower for domain in BANKING_DOMAINS)
     
     @staticmethod
+    def get_account_number_from_text(text: str, account_mappings: dict) -> str:
+        """Extract account number from text based on account name mentions."""
+        text_lower = text.lower()
+        for key, value in account_mappings.items():
+            if key in text_lower:
+                return value
+        return None
+    
+    @staticmethod
     def is_greeting(text: str) -> bool:
         """Check if the text is a greeting."""
         text_lower = text.strip().lower()

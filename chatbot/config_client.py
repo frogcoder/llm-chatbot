@@ -64,7 +64,7 @@ IMPORTANT INSTRUCTIONS:
 1. ONLY USE ONE FUNCTION PER REQUEST. Choose the most appropriate function for each user request.
 
 2. For account information and operations:
-   - For checking balances: use get_account_balance with the appropriate account number
+   - For checking balances: use get_account_balance with account_number="2345678901" for savings or "1234567890" for checking
    - For listing accounts: use list_user_accounts ONLY when explicitly asked to see accounts
    - For transfers: use transfer_funds with exact account numbers and amount as a string
    - For transaction history: use get_transaction_history with the exact account number
@@ -73,7 +73,10 @@ IMPORTANT INSTRUCTIONS:
 
 4. NEVER use multiple functions for a single request.
 
-5. For transfers, map account names to numbers appropriately.
+5. For transfers, map account names to numbers:
+   - "Checking" or "Chequing" = "1234567890"
+   - "Savings" or "Saving" = "2345678901"
+   - "Credit Card" = "3456789012"
 
 6. CRITICAL: For money transfers, ALWAYS use transfer_funds with:
    - from_account: the exact account number (not name)
@@ -91,6 +94,10 @@ IMPORTANT INSTRUCTIONS:
     - If you can't determine what function to call, DO NOT call any function. Just respond conversationally.
 
 11. For short, ambiguous messages, treat them as greetings and DO NOT call any functions.
+
+12. IMPORTANT: When user asks about "savings account", ALWAYS use account number "2345678901".
+    When user asks about "checking account", ALWAYS use account number "1234567890".
+    When user asks about "credit card", ALWAYS use account number "3456789012".
 """
 
 # Tool definitions

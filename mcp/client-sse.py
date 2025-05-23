@@ -87,6 +87,19 @@ class InteractiveBankingAssistant:
                         func_call = part.function_call
                         function_name = func_call.name
                         
+                        # Auto-fill account numbers for common account types
+                        if function_name in ["get_account_balance", "get_transaction_history"]:
+                            args = func_call.args
+                            if "account_number" not in args or not args["account_number"]:
+                                # Try to infer from the conversation history
+                                last_user_msg = self.conversation_history[-1]["content"].lower()
+                                if "savings" in last_user_msg or "saving" in last_user_msg:
+                                    args["account_number"] = "2345678901"
+                                elif "checking" in last_user_msg or "chequing" in last_user_msg:
+                                    args["account_number"] = "1234567890"
+                                elif "credit" in last_user_msg:
+                                    args["account_number"] = "3456789012"
+                        
                         # Execute the function call through MCP and wait for result
                         try:
                             # Call the function through the MCP session and await the result
@@ -228,7 +241,7 @@ class InteractiveBankingAssistant:
             if function_name == "transfer_funds":
                 # Map from_account if it's a name
                 if "from_account" in mcp_args:
-                    from_acc = mcp_args["from_account"].lower()
+                    from_acc = str(mcp_args["from_account"]).lower()
                     for key, value in self.account_mappings.items():
                         if key in from_acc:
                             mcp_args["from_account"] = value
@@ -236,7 +249,7 @@ class InteractiveBankingAssistant:
                 
                 # Map to_account if it's a name
                 if "to_account" in mcp_args:
-                    to_acc = mcp_args["to_account"].lower()
+                    to_acc = str(mcp_args["to_account"]).lower()
                     for key, value in self.account_mappings.items():
                         if key in to_acc:
                             mcp_args["to_account"] = value
@@ -244,7 +257,7 @@ class InteractiveBankingAssistant:
             
             # Map account names for get_transaction_history and get_account_balance
             if function_name in ["get_transaction_history", "get_account_balance"] and "account_number" in mcp_args:
-                acc = mcp_args["account_number"].lower()
+                acc = str(mcp_args["account_number"]).lower()
                 for key, value in self.account_mappings.items():
                     if key in acc:
                         mcp_args["account_number"] = value
@@ -362,6 +375,16 @@ class InteractiveBankingAssistant:
                 print(response_text)
                 self.conversation_history.append({"role": "assistant", "content": response_text})
                 return response_text
+            
+            # Handle direct account queries
+            if "balance" in user_input.lower() or "transaction" in user_input.lower() or "history" in user_input.lower():
+                account_number = None
+                if "savings" in user_input.lower() or "saving" in user_input.lower():
+                    account_number = "2345678901"
+                elif "checking" in user_input.lower() or "chequing" in user_input.lower():
+                    account_number = "1234567890"
+                elif "credit" in user_input.lower():
+                    account_number = "3456789012"
             
             # Generate content with system instructions from config
             system_instructions = SYSTEM_INSTRUCTIONS.format(user_id=self.user_id)
