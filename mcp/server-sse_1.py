@@ -71,6 +71,12 @@ def transfer_funds(user_id: str, from_account: str, to_account: str, amount: str
         clean_amount = amount.replace('$', '').replace(',', '')
         decimal_amount = Decimal(clean_amount)
         
+        # Debug the parameters
+        print(f"[DEBUG] Parsed amount: {decimal_amount} (type: {type(decimal_amount)})")
+        print(f"[DEBUG] from_account: {from_account} (type: {type(from_account)})")
+        print(f"[DEBUG] to_account: {to_account} (type: {type(to_account)})")
+        
+        # Call the transfer function
         transfer_between_accounts(user_id, from_account, to_account, decimal_amount)
         return f"✅ Transferred ${clean_amount} from {from_account} to {to_account}."
     except Exception as e:
@@ -157,7 +163,7 @@ def get_transaction_history(user_id: str, account_number: str, days: int = 30) -
             # For past transactions, we add the amount back since we're going backwards in time
             running_balance = running_balance - amount
         else:
-            running_balance = running_balance - amount
+            running_balance = running_balance + amount
         
         transaction = {
             "transaction_id": row['TransactionNumber'],

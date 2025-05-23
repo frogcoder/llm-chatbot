@@ -88,6 +88,13 @@ def transfer_fund_between_accounts(user_id: str,
     :param to_account: The account number or account name that the fund would be transferred to.
     :param amount: The amount that is going to be transfered.
     """
+    # Debug the parameters
+    print(f"[DEBUG] transfer_fund_between_accounts: user_id={user_id}, from={from_account}, to={to_account}, amount={amount} (type: {type(amount)})")
+    
+    # Ensure amount is a Decimal
+    if not isinstance(amount, Decimal):
+        amount = Decimal(str(amount))
+    
     con = sqlite3.connect(DB_FILE)
     cur = con.cursor()
     
@@ -95,16 +102,19 @@ def transfer_fund_between_accounts(user_id: str,
         # Start a transaction
         con.execute("BEGIN TRANSACTION")
         
+        # Convert amount to string for SQLite
+        amount_str = str(amount)
+        
         # Deduct from source account
         cur.execute(
-            "UPDATE Accounts SET Balance = Balance - :amount WHERE UserId=:user_id AND AccountNumber=:account_number",
-            {"amount": amount, "user_id": user_id, "account_number": from_account}
+            "UPDATE Accounts SET Balance = Balance - ? WHERE UserId=? AND AccountNumber=?",
+            (amount_str, user_id, from_account)
         )
         
         # Add to destination account
         cur.execute(
-            "UPDATE Accounts SET Balance = Balance + :amount WHERE UserId=:user_id AND AccountNumber=:account_number",
-            {"amount": amount, "user_id": user_id, "account_number": to_account}
+            "UPDATE Accounts SET Balance = Balance + ? WHERE UserId=? AND AccountNumber=?",
+            (amount_str, user_id, to_account)
         )
         
         # Record the transfer
@@ -116,22 +126,18 @@ def transfer_fund_between_accounts(user_id: str,
         cur.execute(
             """
             INSERT INTO Transfers (TransactionNumber, FromAccountNumber, ToAccountNumber, TransferDateTime, Amount)
-            VALUES (:transaction_id, :from_account, :to_account, :transfer_time, :amount)
+            VALUES (?, ?, ?, ?, ?)
             """,
-            {
-                "transaction_id": transaction_id,
-                "from_account": from_account,
-                "to_account": to_account,
-                "transfer_time": current_time,
-                "amount": amount
-            }
+            (transaction_id, from_account, to_account, current_time, amount_str)
         )
         
         # Commit the transaction
         con.commit()
+        print(f"[DEBUG] Transfer successful: {amount_str} from {from_account} to {to_account}")
     except Exception as e:
         # Rollback in case of error
         con.rollback()
+        print(f"[ERROR] Database error during transfer: {str(e)}")
         raise e
     finally:
         con.close()
