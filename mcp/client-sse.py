@@ -66,13 +66,19 @@ Always use the appropriate tools when needed:
         try:
             # Send to Gemini
             model = genai.GenerativeModel('gemini-1.5-pro')
+            
+            # Create a tool config that wraps the MCP session
+            tool_config = [{
+                "function_declarations": self.session.get_tool_specs()
+            }]
+            
             response = await asyncio.to_thread(
                 model.generate_content,
                 prompt,
                 generation_config=genai.GenerationConfig(
                     temperature=0,
                 ),
-                tools=[self.session],
+                tools=tool_config,
             )
             
             # Print and store response
