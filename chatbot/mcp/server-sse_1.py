@@ -7,6 +7,7 @@ import sys
 from chatbot.models import Account
 from chatbot.account import list_accounts
 from chatbot.account import list_transfer_target_accounts
+from chatbot.account import transfer_between_accounts
 from chatbot.rag.rag_chatbot import RBCChatbot
 
 # Load environment variables from .env file
@@ -132,16 +133,6 @@ _transactions_db = {
     }
 }
 
-# Simulate transferring money between two accounts
-def transfer_between_accounts(user_id: str, from_account: str, to_account: str, amount):
-    print(f"[DEBUG] list_accounts(user_id): {list_accounts(user_id)}")
-    print(f"[TRANSFER] Transferring {amount} from {from_account} to {to_account} for user {user_id}")
-
-    if user_id in _balance_db:
-        if from_account in _balance_db[user_id]:
-            _balance_db[user_id][from_account].balance -= amount
-        if to_account in _balance_db[user_id]:
-            _balance_db[user_id][to_account].balance += amount
 
 # Get account balance
 def get_balance(user_id: str, account_number: str) -> dict:
