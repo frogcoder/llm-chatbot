@@ -71,23 +71,49 @@ Always use the appropriate tools when needed:
             tools = await self.session.list_tools()
             
             # Format tools for Gemini API
+            function_declarations = []
+            for tool in tools:
+                # Extract tool information
+                tool_name = tool.get("name", "")
+                tool_description = tool.get("description", "")
+                tool_parameters = tool.get("parameters", [])
+                
+                # Build parameters object
+                properties = {}
+                required_params = []
+                
+                for param in tool_parameters:
+                    if isinstance(param, dict):  # Ensure param is a dictionary
+                        param_name = param.get("name", "")
+                        param_type = param.get("type", "string")
+                        param_description = param.get("description", "")
+                        
+                        if param_name:
+                            properties[param_name] = {
+                                "type": param_type,
+                                "description": param_description
+                            }
+                            
+                            # Add to required list if needed
+                            if param.get("required", True):
+                                required_params.append(param_name)
+                
+                # Create function declaration
+                function_declaration = {
+                    "name": tool_name,
+                    "description": tool_description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": properties,
+                        "required": required_params
+                    }
+                }
+                
+                function_declarations.append(function_declaration)
+            
+            # Create final tool config
             tool_config = [{
-                "function_declarations": [
-                    {
-                        "name": tool["name"],
-                        "description": tool["description"],
-                        "parameters": {
-                            "type": "object",
-                            "properties": {
-                                param["name"]: {
-                                    "type": param["type"],
-                                    "description": param.get("description", "")
-                                } for param in tool["parameters"]
-                            },
-                            "required": [param["name"] for param in tool["parameters"] if param.get("required", True)]
-                        }
-                    } for tool in tools
-                ]
+                "function_declarations": function_declarations
             }]
             
             response = await asyncio.to_thread(
