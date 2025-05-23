@@ -2,6 +2,7 @@ from document_loader import load_documents, split_documents
 from vector_store import create_vector_store
 from rag_chatbot import RBCChatbot
 import os
+import sys
 
 def initialize_database(docs_directory):
     """Initialize the vector database if it doesn't exist"""

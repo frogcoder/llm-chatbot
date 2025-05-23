@@ -1,9 +1,17 @@
 import os
+import sys
 from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain.chains import RetrievalQA
 from langchain_google_genai import ChatGoogleGenerativeAI
-from vector_store import load_vector_store
+
+# Handle imports whether called directly or from MCP
+try:
+    from vector_store import load_vector_store, create_vector_store
+    from document_loader import load_documents, split_documents
+except ImportError:
+    from src.vector_store import load_vector_store, create_vector_store
+    from src.document_loader import load_documents, split_documents
 
 load_dotenv()
 
@@ -11,8 +19,22 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class RBCChatbot:
+    _instance = None
+    
+    def __new__(cls, *args, **kwargs):
+        """Singleton pattern to ensure only one instance is created"""
+        if cls._instance is None:
+            cls._instance = super(RBCChatbot, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+    
     def __init__(self, persist_directory="./chroma_db"):
-        # Load the vector store
+        # Only initialize once
+        if getattr(self, '_initialized', False):
+            return
+            
+        # Initialize the vector store
+        self._ensure_vector_store_exists(persist_directory)
         self.vector_store = load_vector_store(persist_directory)
         
         # Initialize the LLM with explicit API key
@@ -34,6 +56,23 @@ class RBCChatbot:
         If you're unsure or the information isn't in the provided context, acknowledge that 
         and suggest the user contact RBC directly. Always be professional, helpful, and concise.
         """
+        
+        self._initialized = True
+    
+    def _ensure_vector_store_exists(self, persist_directory):
+        """Make sure the vector store exists, create it if it doesn't"""
+        if not os.path.exists(persist_directory):
+            print("Vector store not found. Creating new vector store...")
+            docs_directory = "./rbc_documents"
+            if os.path.exists(docs_directory):
+                documents = load_documents(docs_directory)
+                chunks = split_documents(documents)
+                create_vector_store(chunks, persist_directory)
+            else:
+                print(f"Warning: Documents directory {docs_directory} not found.")
+                print("Creating empty vector store.")
+                # Create an empty vector store
+                create_vector_store([], persist_directory)
     
     def answer_question(self, question):
         """Answer a question using RAG"""
@@ -63,4 +102,23 @@ class RBCChatbot:
             return {
                 "answer": f"I encountered an error: {str(e)}",
                 "sources": []
+            }
+    
+    def get_relevant_documents(self, query):
+        """Retrieve relevant documents for a query without generating an answer"""
+        try:
+            docs = self.vector_store.similarity_search(query, k=5)
+            sources = []
+            for doc in docs:
+                if hasattr(doc, "metadata") and "source" in doc.metadata:
+                    sources.append(doc.metadata["source"])
+            return {
+                "documents": docs,
+                "sources": list(set(sources))
+            }
+        except Exception as e:
+            return {
+                "documents": [],
+                "sources": [],
+                "error": str(e)
             }
