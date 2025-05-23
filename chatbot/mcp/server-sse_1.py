@@ -62,13 +62,15 @@ def transfer_funds(user_id: str, from_account: str, to_account: str, amount: str
     transfer_between_accounts(user_id, from_account, to_account, Decimal(amount))
     return f"✅ Transferred {amount} from {from_account} to {to_account}."
 
+
 # Tool 4: Get account balance
 @mcp.tool()
-def get_account_balance(user_id: str, account_number: str) -> str:
+def get_account_balance(user_id: str, account_number: str) -> dict:
     """Get the balance of a specific account."""
     print(f'[DEBUG] get_account_balance called with user_id={user_id}, account_number={account_number}')
-    balance_info = get_balance(user_id, account_number)
-    return balance_info
+    account = next(for a in list_accounts(user_id) if a.account_number == account_number)
+    return asdict(account)
+
 
 # Tool 5: Get transaction history
 @mcp.tool()
