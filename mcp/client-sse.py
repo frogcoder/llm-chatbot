@@ -67,71 +67,139 @@ Always use the appropriate tools when needed:
             # Send to Gemini
             model = genai.GenerativeModel('gemini-1.5-pro')
             
-            # Get the available tools from the session
-            tools = await self.session.list_tools()
+            # For now, let's use a direct approach with the function calling format
+            # that Gemini expects
             
-            # Format tools for Gemini API
-            function_declarations = []
-            for tool in tools:
-                # Extract tool information - tools might be tuples or dictionaries
-                if isinstance(tool, dict):
-                    tool_name = tool.get("name", "")
-                    tool_description = tool.get("description", "")
-                    tool_parameters = tool.get("parameters", [])
-                elif isinstance(tool, tuple) and len(tool) >= 3:
-                    # Assuming tuple structure is (name, description, parameters, ...)
-                    tool_name = tool[0]
-                    tool_description = tool[1]
-                    tool_parameters = tool[2] if len(tool) > 2 else []
-                else:
-                    print(f"Skipping tool with unexpected format: {tool}")
-                    continue
-                
-                # Build parameters object
-                properties = {}
-                required_params = []
-                
-                for param in tool_parameters:
-                    if isinstance(param, dict):  # Ensure param is a dictionary
-                        param_name = param.get("name", "")
-                        param_type = param.get("type", "string")
-                        param_description = param.get("description", "")
-                        
-                        if param_name:
-                            properties[param_name] = {
-                                "type": param_type,
-                                "description": param_description
-                            }
-                            
-                            # Add to required list if needed
-                            if param.get("required", True):
-                                required_params.append(param_name)
-                
-                # Create function declaration
-                function_declaration = {
-                    "name": tool_name,
-                    "description": tool_description,
-                    "parameters": {
-                        "type": "object",
-                        "properties": properties,
-                        "required": required_params
-                    }
-                }
-                
-                function_declarations.append(function_declaration)
-            
-            # Create final tool config
+            # Define the tools directly in the format Gemini expects
             tool_config = [{
-                "function_declarations": function_declarations
+                "function_declarations": [
+                    {
+                        "name": "answer_banking_question",
+                        "description": "Answer a banking question using the RAG system with RBC documentation.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "question": {
+                                    "type": "string",
+                                    "description": "The banking question to answer"
+                                }
+                            },
+                            "required": ["question"]
+                        }
+                    },
+                    {
+                        "name": "list_user_accounts",
+                        "description": "List all accounts for a given user.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                }
+                            },
+                            "required": ["user_id"]
+                        }
+                    },
+                    {
+                        "name": "list_target_accounts",
+                        "description": "List all other accounts this user can transfer to.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "from_account": {
+                                    "type": "string",
+                                    "description": "The source account number"
+                                }
+                            },
+                            "required": ["user_id", "from_account"]
+                        }
+                    },
+                    {
+                        "name": "transfer_funds",
+                        "description": "Transfer funds from one account to another.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "from_account": {
+                                    "type": "string",
+                                    "description": "The source account number"
+                                },
+                                "to_account": {
+                                    "type": "string",
+                                    "description": "The destination account number"
+                                },
+                                "amount": {
+                                    "type": "string",
+                                    "description": "The amount to transfer"
+                                }
+                            },
+                            "required": ["user_id", "from_account", "to_account", "amount"]
+                        }
+                    },
+                    {
+                        "name": "get_account_balance",
+                        "description": "Get the balance of a specific account.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "account_number": {
+                                    "type": "string",
+                                    "description": "The account number"
+                                }
+                            },
+                            "required": ["user_id", "account_number"]
+                        }
+                    },
+                    {
+                        "name": "get_transaction_history",
+                        "description": "Get the transaction history for a specific account.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "account_number": {
+                                    "type": "string",
+                                    "description": "The account number"
+                                },
+                                "days": {
+                                    "type": "integer",
+                                    "description": "Number of days of history to retrieve",
+                                    "default": 30
+                                }
+                            },
+                            "required": ["user_id", "account_number"]
+                        }
+                    }
+                ]
             }]
             
+            # Create a model with the tools
+            model = genai.GenerativeModel(
+                model_name='gemini-1.5-pro',
+                generation_config=genai.GenerationConfig(temperature=0),
+                tools=tool_config
+            )
+            
+            # Generate content
             response = await asyncio.to_thread(
                 model.generate_content,
-                prompt,
-                generation_config=genai.GenerationConfig(
-                    temperature=0,
-                ),
-                tools=tool_config,
+                prompt
             )
             
             # Print and store response
