@@ -1,8 +1,11 @@
+from dataclasses import asdict
 from mcp.server.fastmcp import FastMCP
 from dotenv import load_dotenv
 from decimal import Decimal
 import os
 import sys
+from chatbot.models import Account
+from chatbot.account import list_accounts
 from chatbot.rag.rag_chatbot import RBCChatbot
 
 # Load environment variables from .env file
@@ -36,7 +39,8 @@ def list_user_accounts(user_id: str) -> list[dict]:
     accounts = list_accounts(user_id)
     print(f"[DEBUG] list_user_accounts called with user_id={user_id}")
     print(f"[DEBUG] Accounts: {accounts}")
-    return [account.__dict__ for account in accounts]
+    return list(map(asdict, accounts))
+
 
 # Tool 2: List target accounts that can receive transfers
 @mcp.tool()
@@ -78,12 +82,6 @@ def get_transaction_history(user_id: str, account_number: str, days: int = 30) -
 # Simulated in-memory account system (mock database)
 # ================================
 from dataclasses import dataclass
-
-# A simple data structure representing a bank account
-@dataclass
-class Account:
-    account_name: str
-    account_number: str
 
 @dataclass
 class Balance:
@@ -131,11 +129,6 @@ _transactions_db = {
         ]
     }
 }
-
-# Get all accounts for a specific user
-def list_accounts(user_id: str) -> list[Account]:
-    print(f"[DEBUG] list_accounts called with user_id={user_id}")
-    return _fake_db.get(user_id, [])
 
 # Get transfer targets (all accounts except the source account)
 def list_transfer_target_accounts(user_id: str, from_account: str) -> list[Account]:
