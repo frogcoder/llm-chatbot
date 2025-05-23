@@ -141,7 +141,22 @@ def init_db():
     """
     Create the database and add inital test data.
     """
-
+    # Check if database file already exists and has tables
+    db_exists = Path(DB_FILE).exists()
+    
+    if db_exists:
+        # Check if tables already exist
+        con = sqlite3.connect(DB_FILE)
+        cur = con.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='UserCredentials'")
+        table_exists = cur.fetchone() is not None
+        con.close()
+        
+        if table_exists:
+            print(f"Database {DB_FILE} already initialized.")
+            return
+    
+    # Create and initialize the database
     sql_path = Path(__file__).parent / "init.sql"
     with open(sql_path) as sql_file:
         sql = sql_file.read()
@@ -150,3 +165,4 @@ def init_db():
         cur.executescript(sql)
         con.commit()
         con.close()
+        print(f"Database {DB_FILE} initialized successfully.")

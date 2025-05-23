@@ -14,7 +14,7 @@ from chatbot.database import init_db
 # Load environment variables from .env file
 load_dotenv("../.env")
 
-# Initialize the database if it doesn't exist
+# Initialize the database if it doesn't exist (will check internally)
 init_db()
 
 # Create the MCP server

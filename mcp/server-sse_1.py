@@ -19,7 +19,7 @@ from chatbot.models import Account
 # Load environment variables from .env file
 load_dotenv("../.env")
 
-# Initialize the database if it doesn't exist
+# Initialize the database if it doesn't exist (will check internally)
 init_db()
 
 # Initialize the RAG chatbot
