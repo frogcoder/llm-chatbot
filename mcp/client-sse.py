@@ -179,8 +179,7 @@ Always use the appropriate tools when needed:
                                 },
                                 "days": {
                                     "type": "integer",
-                                    "description": "Number of days of history to retrieve",
-                                    "default": 30
+                                    "description": "Number of days of history to retrieve (default: 30)"
                                 }
                             },
                             "required": ["user_id", "account_number"]
