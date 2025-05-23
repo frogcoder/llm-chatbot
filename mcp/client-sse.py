@@ -333,9 +333,21 @@ class InteractiveBankingAssistant:
         except:
             return None
     
+    def is_short_response(self, text):
+        """Check if this is likely a short response to a previous question"""
+        # If it's just one or two words and not a clear command
+        words = text.strip().split()
+        return (len(words) <= 2 and 
+                not any(cmd in text.lower() for cmd in ["transfer", "balance", "history", "accounts"]))
+    
     async def _execute_function_call(self, function_name, args):
         """Execute a function call through the MCP session"""
         try:
+            # Check if function name is empty or invalid
+            if not function_name or function_name.strip() == "":
+                print(f"\n⚠️ Warning: Empty function name received")
+                return {"error": "No function specified"}
+                
             # Convert args from Gemini format to what MCP expects
             mcp_args = {}
             if args:  # Check if args is not None before iterating
@@ -470,8 +482,11 @@ NEVER say you don't have access to account information - use the tools instead.
         self.conversation_history.append({"role": "user", "content": user_input})
         
         # Check if this is a simple greeting
-        greeting_patterns = ["hi", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening"]
+        greeting_patterns = ["hi", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening", "yo", "sup", "howdy"]
         is_simple_greeting = user_input.lower().strip() in greeting_patterns or user_input.lower().strip() + "!" in greeting_patterns
+        
+        # Check if this is a short response to a previous question
+        is_short_response = self.is_short_response(user_input) and len(self.conversation_history) >= 2
         
         # Check if this is a transfer request
         transfer_keywords = ["transfer", "send", "move money", "move funds"]
@@ -534,6 +549,12 @@ IMPORTANT INSTRUCTIONS:
 8. For transaction history, use get_transaction_history with the exact account number.
 
 9. NEVER call multiple functions for the same request.
+
+10. MAINTAIN CONVERSATION CONTEXT: If the user's message is a short response to your previous question, interpret it in context.
+    - If you asked "What account are you transferring from?" and they reply "savings", use that to complete the previous request.
+    - If you can't determine what function to call, DO NOT call any function. Just respond conversationally.
+
+11. For short, ambiguous messages like "yo", "sup", etc., treat them as greetings and DO NOT call any functions.
 """
             
             tool_config = [{
@@ -657,7 +678,7 @@ IMPORTANT INSTRUCTIONS:
             model = genai.GenerativeModel(
                 model_name='gemini-1.5-pro',
                 generation_config=genai.GenerationConfig(
-                    temperature=0
+                    temperature=0.1  # Slight increase in temperature for more natural responses
                 ),
                 tools=tool_config,
                 tool_config={"function_calling_config": {"mode": "AUTO"}}
@@ -669,6 +690,20 @@ IMPORTANT INSTRUCTIONS:
                 [system_instructions, user_input]
             )
             
+            # For short responses that might be follow-ups to previous questions
+            if is_short_response:
+                # Get the last assistant message to provide context
+                last_assistant_msg = ""
+                for msg in reversed(self.conversation_history[:-1]):  # Skip the current user message
+                    if msg["role"] == "assistant":
+                        last_assistant_msg = msg["content"]
+                        break
+                
+                # Add context to the prompt
+                if "what account" in last_assistant_msg.lower():
+                    # If the assistant asked about accounts, interpret the response in that context
+                    print(f"\n🔄 Interpreting short response in context of previous question")
+                    
             # Process and print response
             assistant_response = await self._process_response(response)
             print("\n🔁 Assistant:")
