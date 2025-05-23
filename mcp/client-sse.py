@@ -65,9 +65,10 @@ Always use the appropriate tools when needed:
         
         try:
             # Send to Gemini
-            response = await genai.generate_content_async(
-                model="gemini-1.5-pro",
-                contents=prompt,
+            model = genai.GenerativeModel('gemini-1.5-pro')
+            response = await asyncio.to_thread(
+                model.generate_content,
+                prompt,
                 generation_config=genai.GenerationConfig(
                     temperature=0,
                 ),
