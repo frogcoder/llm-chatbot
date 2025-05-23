@@ -3,11 +3,11 @@ import os, asyncio
 import sys
 from mcp import ClientSession
 from mcp.client.sse import sse_client
-from google import genai
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv("../.env")
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class InteractiveBankingAssistant:
     def __init__(self):
@@ -64,13 +64,13 @@ Always use the appropriate tools when needed:
         
         try:
             # Send to Gemini
-            response = await client.aio.models.generate_content(
+            response = await genai.generate_content_async(
                 model="gemini-1.5-pro",
                 contents=prompt,
-                config=genai.types.GenerateContentConfig(
+                generation_config=genai.GenerationConfig(
                     temperature=0,
-                    tools=[self.session],
                 ),
+                tools=[self.session],
             )
             
             # Print and store response
