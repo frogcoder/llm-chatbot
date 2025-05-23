@@ -6,7 +6,9 @@ import sys
 import datetime
 
 # Add the parent directory to the Python path to import from src and chatbot
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+print(f"Added to Python path: {parent_dir}")
 
 # Import RAG components
 from src.rag_chatbot import RBCChatbot

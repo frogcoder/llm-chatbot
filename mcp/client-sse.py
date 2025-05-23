@@ -3,6 +3,10 @@ import os, asyncio
 import sys
 import re
 import json
+
+# Add the parent directory to the Python path to import from src and chatbot
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 import google.generativeai as genai
