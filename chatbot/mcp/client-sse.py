@@ -76,8 +76,11 @@ class InteractiveBankingAssistant:
                             
                             # If we got a result from a banking function, format it nicely for the user
                             if function_name != "answer_banking_question":
+                                # Check for errors first
+                                if isinstance(parsed_result, dict) and "error" in parsed_result:
+                                    result.append(f"I'm sorry, I couldn't complete that action: {parsed_result['error']}")
                                 # For account-related functions, format a nice response
-                                if function_name == "get_account_balance":
+                                elif function_name == "get_account_balance":
                                     try:
                                         if isinstance(parsed_result, dict) and "balance" in parsed_result:
                                             result.append(f"Your {parsed_result.get('account_name', '')} account ({parsed_result.get('account_number', '')}) has a balance of {parsed_result.get('balance', '')} {parsed_result.get('currency', '')}.")
@@ -103,6 +106,8 @@ class InteractiveBankingAssistant:
                                     try:
                                         if isinstance(parsed_result, str) and "Transferred" in parsed_result:
                                             result.append(parsed_result)
+                                        elif isinstance(parsed_result, dict) and "error" in parsed_result:
+                                            result.append(f"I couldn't complete the transfer: {parsed_result['error']}")
                                         else:
                                             result.append("I've completed the transfer for you.")
                                     except Exception as e:
@@ -189,6 +194,14 @@ class InteractiveBankingAssistant:
                 for content in result.content:
                     if hasattr(content, 'text'):
                         text_contents.append(content.text)
+                
+                # Check if there's an error in the result
+                for text in text_contents:
+                    if "Error executing tool" in text:
+                        error_msg = text.split("Error executing tool")[1].strip()
+                        if ":" in error_msg:
+                            error_msg = error_msg.split(":", 1)[1].strip()
+                        return {"error": error_msg}
                 
                 # Try to parse each text content as JSON
                 parsed_contents = []

@@ -74,7 +74,14 @@ def get_account_balance(user_id: str, account_number: str) -> dict:
     """Get the balance of a specific account."""
     print(f'[DEBUG] get_account_balance called with user_id={user_id}, account_number={account_number}')
     account = next((a for a in list_accounts(user_id) if a.account_number == account_number), None)
-    return asdict(account)
+    if account:
+        return {
+            "account_number": account.account_number,
+            "account_name": account.account_name,
+            "balance": str(account.balance),
+            "currency": account.currency_code
+        }
+    return {"error": "Account not found"}
 
 
 # Tool 5: Get transaction history
