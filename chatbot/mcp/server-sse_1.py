@@ -6,6 +6,7 @@ import os
 import sys
 from chatbot.models import Account
 from chatbot.account import list_accounts
+from chatbot.account import list_transfer_target_accounts
 from chatbot.rag.rag_chatbot import RBCChatbot
 
 # Load environment variables from .env file
@@ -49,7 +50,8 @@ def list_target_accounts(user_id: str, from_account: str) -> list[dict]:
     accounts = list_transfer_target_accounts(user_id, from_account)
     print(f"[DEBUG] list_target_accounts called with user_id={user_id}, from_account={from_account}")
     print(f"[DEBUG] Transfer targets: {accounts}")
-    return [account.__dict__ for account in accounts]
+    return list(map(asdict, accounts))
+
 
 # Tool 3: Transfer funds between two accounts
 @mcp.tool()
@@ -129,11 +131,6 @@ _transactions_db = {
         ]
     }
 }
-
-# Get transfer targets (all accounts except the source account)
-def list_transfer_target_accounts(user_id: str, from_account: str) -> list[Account]:
-    print(f"[DEBUG] list_transfer_target_accounts called with user_id={user_id}, from_account={from_account}")
-    return [acc for acc in list_accounts(user_id) if acc.account_number != from_account]
 
 # Simulate transferring money between two accounts
 def transfer_between_accounts(user_id: str, from_account: str, to_account: str, amount):
