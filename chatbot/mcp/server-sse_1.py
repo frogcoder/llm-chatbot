@@ -69,7 +69,7 @@ def transfer_funds(user_id: str, from_account: str, to_account: str, amount: str
 def get_account_balance(user_id: str, account_number: str) -> dict:
     """Get the balance of a specific account."""
     print(f'[DEBUG] get_account_balance called with user_id={user_id}, account_number={account_number}')
-    account = next(for a in list_accounts(user_id) if a.account_number == account_number)
+    account = next((a for a in list_accounts(user_id) if a.account_number == account_number), None)
     return asdict(account)
 
 
