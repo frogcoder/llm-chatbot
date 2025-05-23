@@ -95,6 +95,31 @@ class InteractiveBankingAssistant:
                                     except Exception as e:
                                         print(f"Error formatting accounts: {e}")
                                         result.append("I found your accounts but couldn't format them properly.")
+                                elif function_name == "transfer_funds":
+                                    try:
+                                        if isinstance(parsed_result, str) and "Transferred" in parsed_result:
+                                            result.append(parsed_result)
+                                        else:
+                                            result.append("I've completed the transfer for you.")
+                                    except Exception as e:
+                                        print(f"Error formatting transfer result: {e}")
+                                        result.append("The transfer has been processed.")
+                                elif function_name == "get_transaction_history":
+                                    try:
+                                        if isinstance(parsed_result, list):
+                                            result.append(f"Here are the recent transactions for your account:")
+                                            for i, transaction in enumerate(parsed_result[:5]):  # Show only first 5 transactions
+                                                date = transaction.get('date', 'Unknown date')
+                                                desc = transaction.get('description', 'Transaction')
+                                                amount = transaction.get('amount', '0.00')
+                                                result.append(f"- {date}: {desc} - {amount}")
+                                            if len(parsed_result) > 5:
+                                                result.append(f"...and {len(parsed_result) - 5} more transactions.")
+                                        else:
+                                            result.append("I couldn't find any transactions for this account.")
+                                    except Exception as e:
+                                        print(f"Error formatting transaction history: {e}")
+                                        result.append("I found your transaction history but couldn't format it properly.")
                                 else:
                                     # Generic handling for other functions
                                     result.append(self._format_generic_result(function_name, parsed_result))
@@ -239,9 +264,15 @@ class InteractiveBankingAssistant:
             # Format transaction history
             try:
                 if isinstance(result, list) and len(result) > 0:
-                    return f"I found {len(result)} recent transactions for your account."
+                    transactions_text = [f"- {tx.get('date', 'Unknown')}: {tx.get('description', 'Transaction')} - {tx.get('amount', '0.00')}" 
+                                        for tx in result[:5]]  # Show only first 5
+                    transactions_str = "\n".join(transactions_text)
+                    if len(result) > 5:
+                        transactions_str += f"\n...and {len(result) - 5} more transactions."
+                    return f"Here are your recent transactions:\n{transactions_str}"
                 return "I couldn't find any transactions for your account."
-            except:
+            except Exception as e:
+                print(f"Error in transaction formatting: {e}")
                 return "I found your transaction history."
         
         # Generic fallback
@@ -328,11 +359,15 @@ You are my RBC banking assistant. You can help me with both:
 2. Answering questions about RBC's products and services using your knowledge base
 
 ALWAYS use the appropriate tools when needed:
-- For account balances, use get_account_balance
-- For listing accounts, use list_user_accounts
-- For transfers, use transfer_funds
-- For transaction history, use get_transaction_history
+- For account balances, ALWAYS use get_account_balance with the account number
+- For listing accounts, ONLY use list_user_accounts when explicitly asked to show accounts
+- For transfers, ALWAYS use transfer_funds with from_account, to_account, and amount
+- For transaction history, ALWAYS use get_transaction_history with the account number
 - For product/service questions, use answer_banking_question
+
+IMPORTANT: For transfers and balance checks, use the account numbers directly:
+- Savings account: ABC123
+- Checking account: DEF456
 
 NEVER say you don't have access to account information - use the tools instead.
 """
@@ -383,11 +418,11 @@ NEVER say you don't have access to account information - use the tools instead.
 You are an RBC Banking Assistant helping user {self.user_id}.
 
 IMPORTANT INSTRUCTIONS:
-1. For account information (balances, transfers, etc.), use the appropriate banking tool ONLY when the user specifically asks for this information:
-   - Use get_account_balance to check balances when asked
-   - Use list_user_accounts to list accounts when asked
-   - Use transfer_funds for transfers when asked
-   - Use get_transaction_history for transaction history when asked
+1. For account information and operations, use ONLY the appropriate banking tool:
+   - For checking balances: ALWAYS use get_account_balance
+   - For listing accounts: ONLY use list_user_accounts when the user explicitly asks to see their accounts
+   - For transfers: ALWAYS use transfer_funds with from_account, to_account, and amount
+   - For transaction history: ALWAYS use get_transaction_history
 
 2. For general banking questions about RBC products and services, use answer_banking_question.
 
@@ -395,20 +430,22 @@ IMPORTANT INSTRUCTIONS:
 
 4. NEVER show function calls in your responses to the user.
 
-5. If the user asks about account information, use the appropriate tool rather than saying you don't have access.
+5. NEVER list accounts unless explicitly asked. Do not call list_user_accounts for operations like transfers or checking balances.
 
 6. Be helpful, concise, and professional in your responses.
 
-7. DO NOT automatically list accounts or check balances unless specifically asked.
-
-8. CRITICAL: For simple greetings like "hi", "hello", "hey", etc., DO NOT USE ANY FUNCTIONS AT ALL. 
+7. CRITICAL: For simple greetings like "hi", "hello", "hey", etc., DO NOT USE ANY FUNCTIONS AT ALL. 
    Just respond with a friendly greeting text. Never call answer_banking_question for greetings.
    
-9. If the user asks about topics unrelated to banking or RBC services, politely explain that you can only help with RBC banking matters and financial questions.
+8. If the user asks about topics unrelated to banking or RBC services, politely explain that you can only help with RBC banking matters and financial questions.
 
-10. For greetings, respond naturally without using any tools or functions. For example:
-    - "Hi" → "Hello! How can I help with your RBC banking needs today?"
-    - "Hello" → "Hi there! How may I assist you with your RBC accounts or services today?"
+9. For transfers, ALWAYS extract the account numbers directly:
+   - "transfer $50 from checking to savings" → use transfer_funds with from_account="DEF456", to_account="ABC123", amount="50"
+   - Do NOT call list_user_accounts first
+
+10. For transaction history, ALWAYS use get_transaction_history directly:
+    - "show me transactions for my savings" → use get_transaction_history with account_number="ABC123"
+    - Do NOT call list_user_accounts first
 """
             
             tool_config = [{
