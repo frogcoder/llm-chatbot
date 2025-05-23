@@ -298,11 +298,10 @@ You are an RBC Banking Assistant helping user {self.user_id}.
             model = genai.GenerativeModel(
                 model_name='gemini-1.5-pro',
                 generation_config=genai.GenerationConfig(
-                    temperature=0,
-                    # Encourage the model to use tools
-                    response_mime_type="application/json"
+                    temperature=0
                 ),
-                tools=tool_config
+                tools=tool_config,
+                tool_config={"function_calling_config": {"mode": "ANY"}}
             )
             
             # Generate content with system instructions
