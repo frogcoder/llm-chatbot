@@ -1,6 +1,8 @@
 # client_gemini.py
 import os, asyncio
 import sys
+import re
+import json
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 import google.generativeai as genai
@@ -42,14 +44,19 @@ class InteractiveBankingAssistant:
                 for part in response.parts:
                     # Handle text parts
                     if hasattr(part, 'text') and part.text:
-                        result.append(part.text)
+                        # Remove any function call syntax that might be in the text
+                        text = part.text
+                        text = re.sub(r'\[Function Call:.*?\]', '', text)
+                        text = re.sub(r'^\s*Assistant:\s*', '', text)  # Remove "Assistant:" prefix
+                        if text.strip():  # Only add non-empty text
+                            result.append(text.strip())
                     
                     # Handle function calls
                     if hasattr(part, 'function_call'):
                         func_call = part.function_call
                         function_name = func_call.name
                         
-                        # Format function call for display
+                        # Format function call for display (but don't show to user)
                         args_str = ""
                         if hasattr(func_call, 'args') and func_call.args:
                             # Convert args to a readable format
@@ -58,17 +65,14 @@ class InteractiveBankingAssistant:
                                 args_dict[key] = value
                             args_str = ", ".join(f"{k}={v}" for k, v in args_dict.items())
                         
-                        # Add formatted function call to result
-                        result.append(f"[Function Call: {function_name}({args_str})]")
-                        
                         # Execute the function call through MCP
                         try:
                             # Call the function through the MCP session
                             asyncio.create_task(self._execute_function_call(function_name, func_call.args))
                         except Exception as e:
-                            result.append(f"[Error executing function: {str(e)}]")
+                            result.append(f"Error: {str(e)}")
                 
-                return "\n".join(result)
+                return "\n".join(result) if result else "I'm working on your request..."
             else:
                 # Simple text response
                 return response.text
@@ -80,29 +84,43 @@ class InteractiveBankingAssistant:
         try:
             # Convert args from Gemini format to what MCP expects
             mcp_args = {}
-            for key, value in args.items():
-                mcp_args[key] = value
+            if args:  # Check if args is not None before iterating
+                for key, value in args.items():
+                    mcp_args[key] = value
             
             # Call the function through MCP
             result = await self.session.call_tool(function_name, mcp_args)
             
             # Format the result
             if isinstance(result, dict):
-                result_str = "\n".join(f"{k}: {v}" for k, v in result.items())
+                # Try to pretty print if it's a dict
+                result_str = json.dumps(result, indent=2)
             elif isinstance(result, list):
-                result_str = "\n".join(str(item) for item in result)
+                # For lists of objects (like accounts)
+                if result and hasattr(result[0], '__dict__'):
+                    # Convert dataclass objects to dicts for better display
+                    result_str = json.dumps([item.__dict__ for item in result], indent=2)
+                else:
+                    result_str = "\n".join(str(item) for item in result)
             else:
-                result_str = str(result)
+                # Handle string results that might be JSON
+                try:
+                    if isinstance(result, str) and (result.startswith('{') or result.startswith('[')):
+                        parsed = json.loads(result)
+                        result_str = json.dumps(parsed, indent=2)
+                    else:
+                        result_str = str(result)
+                except:
+                    result_str = str(result)
             
             # Print the result
             print(f"\n🔧 Function Result ({function_name}):")
             print(result_str)
             
-            # Add to conversation history
+            # Add to conversation history - format as assistant message for better context
             self.conversation_history.append({
-                "role": "function",
-                "name": function_name,
-                "content": result_str
+                "role": "assistant",
+                "content": f"Based on my lookup, here's the information you requested:\n\n{result_str}"
             })
             
             return result
@@ -149,6 +167,16 @@ Always use the appropriate tools when needed:
             # that Gemini expects
             
             # Define the tools directly in the format Gemini expects
+            # Add more specific instructions to guide the model
+            system_instructions = f"""
+You are an RBC Banking Assistant helping user {self.user_id}.
+- For account information, balances, transfers, use the banking tools.
+- For product questions and general banking information, use answer_banking_question.
+- NEVER show function calls in your responses to the user.
+- Always provide helpful, concise responses.
+- When you need to look up information, tell the user you'll check for them.
+"""
+            
             tool_config = [{
                 "function_declarations": [
                     {
@@ -269,14 +297,18 @@ Always use the appropriate tools when needed:
             # Create a model with the tools
             model = genai.GenerativeModel(
                 model_name='gemini-1.5-pro',
-                generation_config=genai.GenerationConfig(temperature=0),
+                generation_config=genai.GenerationConfig(
+                    temperature=0,
+                    # Encourage the model to use tools
+                    response_mime_type="application/json"
+                ),
                 tools=tool_config
             )
             
-            # Generate content
+            # Generate content with system instructions
             response = await asyncio.to_thread(
                 model.generate_content,
-                prompt
+                [system_instructions, prompt]
             )
             
             # Process and print response
