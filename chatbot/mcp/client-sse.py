@@ -7,7 +7,7 @@ import random
 from typing import Dict, List, Any, Optional, Tuple
 
 # Add the parent directory to the Python path to import from src and chatbot
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from mcp import ClientSession
 from mcp.client.sse import sse_client
@@ -24,7 +24,7 @@ from chatbot.response_formatter import ResponseFormatter
 from chatbot.intent_detector import IntentDetector
 
 # Load environment variables
-load_dotenv("../.env")
+load_dotenv("../../.env")
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class InteractiveBankingAssistant:

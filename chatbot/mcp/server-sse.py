@@ -5,14 +5,15 @@ import os
 import sys
 
 # Add the parent directory to the Python path to import from chatbot
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(parent_dir)
 
 # Import the actual database functions
 from chatbot.account import list_accounts, list_transfer_target_accounts, transfer_between_accounts
 from chatbot.database import init_db
 
 # Load environment variables from .env file
-load_dotenv("../.env")
+load_dotenv("../../.env")
 
 # Initialize the database if it doesn't exist (will check internally)
 init_db()

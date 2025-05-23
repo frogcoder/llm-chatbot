@@ -7,11 +7,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Handle imports whether called directly or from MCP
 try:
+    from chatbot.src.vector_store import load_vector_store, create_vector_store
+    from chatbot.src.document_loader import load_documents, split_documents
+except ImportError:
     from vector_store import load_vector_store, create_vector_store
     from document_loader import load_documents, split_documents
-except ImportError:
-    from src.vector_store import load_vector_store, create_vector_store
-    from src.document_loader import load_documents, split_documents
 
 load_dotenv()
 
