@@ -166,15 +166,14 @@ class InteractiveBankingAssistant:
             if isinstance(result, (dict, list)):
                 return result
             
-            # If it's a string that looks like JSON, parse it
-            if isinstance(result, str):
-                try:
-                    if result.strip().startswith('{') or result.strip().startswith('['):
                         parsed = json.loads(result)
                         # Special handling for transaction objects
                         if isinstance(parsed, dict) and all(key in parsed for key in ['transaction_id', 'date', 'description']):
                             return [parsed]
                         return parsed
+=======
+                        return json.loads(result)
+>>>>>>> main
                 except:
                     pass
             
@@ -285,12 +284,12 @@ class InteractiveBankingAssistant:
             print(f"\n❌ {error_msg}")
             return {"error": error_msg}
     
+<<<<<<< HEAD
     def _format_result_for_logging(self, result):
         """Format a result object for logging."""
         try:
             if isinstance(result, dict):
                 # Try to pretty print if it's a dict
-                return json.dumps(result, indent=2)
             elif isinstance(result, list):
                 # For lists of objects (like accounts)
                 if result and hasattr(result[0], '__dict__'):
@@ -316,17 +315,18 @@ class InteractiveBankingAssistant:
         """Build the prompt with conversation history."""
         # Get system instructions from config and format with user_id
         system_prompt = SYSTEM_INSTRUCTIONS.format(user_id=self.user_id)
-        
-        # Add conversation history
-        history = "\n\n".join([f"User: {msg['content']}" 
-                              if msg['role'] == 'user' else f"Assistant: {msg['content']}" 
-                              for msg in self.conversation_history])
-        
+=======
+    def build_prompt(self, user_input):
+        """Build the prompt with conversation history"""
+        # Start with system instructions
+        system_prompt = f"""
+You are my RBC banking assistant. You can help me with both:
         # Add current user input
         full_prompt = f"{system_prompt}\n\n{history}\n\nUser: {user_input}\n\nAssistant:"
         return full_prompt
     
     async def send_message(self, user_input):
+<<<<<<< HEAD
         """Send a message to the assistant and get a response."""
         # Add user message to history
         self.conversation_history.append({"role": "user", "content": user_input})
@@ -346,20 +346,215 @@ class InteractiveBankingAssistant:
         # Check if this is a simple greeting
         if IntentDetector.is_greeting(user_input):
             response_text = random.choice(RESPONSE_TEMPLATES["greeting"])
+=======
+        """Send a message to the assistant and get a response"""
+        # Add user message to history
+        self.conversation_history.append({"role": "user", "content": user_input})
+        
+        # Check if this is a simple greeting
+        greeting_patterns = ["hi", "hello", "hey", "greetings", "good morning", "good afternoon", "good evening"]
+        is_simple_greeting = user_input.lower().strip() in greeting_patterns or user_input.lower().strip() + "!" in greeting_patterns
+        
+        # Check if this is a transfer request
+        transfer_keywords = ["transfer", "send", "move money", "move funds"]
+        is_transfer_request = any(keyword in user_input.lower() for keyword in transfer_keywords)
+        
+        # For simple greetings, respond directly without calling the model
+        if is_simple_greeting:
+            greeting_responses = [
+                "Hello! How can I help with your RBC banking needs today?",
+                "Hi there! How may I assist you with your RBC accounts or services today?",
+                "Good day! I'm here to help with your RBC banking questions.",
+                "Welcome! How can I assist you with your RBC banking today?"
+            ]
+            import random
+            response_text = random.choice(greeting_responses)
+>>>>>>> main
             print("\n🔁 Assistant:")
             print(response_text)
             self.conversation_history.append({"role": "assistant", "content": response_text})
             return response_text
         
+<<<<<<< HEAD
         # For non-greetings, build the prompt with history
         try:
             # Create a model with the tools from config
             tool_config = [{
                 "function_declarations": TOOL_DEFINITIONS
+=======
+        # For non-banking questions, use a special flag in the prompt
+        if not is_transfer_request and "?" in user_input and not any(keyword in user_input.lower() for keyword in ["balance", "account", "money", "savings", "checking"]):
+            # Add a flag to indicate this is likely a general question
+            self.conversation_history.append({"role": "system", "content": "This appears to be a general question, not a banking operation. Use answer_banking_question for this."})
+        
+        # For non-greetings, build the prompt with history
+        prompt = self.build_prompt(user_input)
+        
+        try:
+            # Send to Gemini
+            model = genai.GenerativeModel('gemini-1.5-pro')
+            
+            # Define the tools directly in the format Gemini expects
+            # Add more specific instructions to guide the model
+            system_instructions = f"""
+You are an RBC Banking Assistant helping user {self.user_id}.
+
+IMPORTANT INSTRUCTIONS:
+1. For account information and operations, use ONLY the appropriate banking tool:
+   - For checking balances: ALWAYS use get_account_balance with account_number="ABC123" for Savings or "DEF456" for Checking
+   - For listing accounts: ONLY use list_user_accounts when the user explicitly asks to see their accounts
+   - For transfers: ALWAYS use transfer_funds with from_account, to_account, and amount
+   - For transaction history: ALWAYS use get_transaction_history with account_number="ABC123" for Savings or "DEF456" for Checking
+
+2. For general banking questions about RBC products and services, ALWAYS use answer_banking_question.
+
+3. NEVER respond with "I'm working on your request" or similar phrases.
+
+4. NEVER show function calls in your responses to the user.
+
+5. NEVER list accounts unless explicitly asked. Do not call list_user_accounts for operations like transfers or checking balances.
+
+6. Be helpful, concise, and professional in your responses.
+
+7. CRITICAL: For simple greetings like "hi", "hello", "hey", etc., DO NOT USE ANY FUNCTIONS AT ALL. 
+   Just respond with a friendly greeting text. Never call answer_banking_question for greetings.
+   
+8. CRITICAL: For topics unrelated to banking or RBC services, ALWAYS use answer_banking_question to respond.
+   NEVER use transfer_funds or other banking operation functions for non-banking questions.
+   
+9. For transfers, ALWAYS extract the account numbers directly:
+   - "transfer $50 from checking to savings" → use transfer_funds with from_account="DEF456", to_account="ABC123", amount="50"
+   - Do NOT call list_user_accounts first
+
+10. For transaction history, ALWAYS use get_transaction_history directly:
+    - "show me transactions for my savings" → use get_transaction_history with account_number="ABC123"
+    - Do NOT call list_user_accounts first
+    
+11. ONLY use transfer_funds when the user explicitly asks to transfer money between accounts.
+    For any other questions, including general questions about banking, use answer_banking_question.
+"""
+            
+            tool_config = [{
+                "function_declarations": [
+                    {
+                        "name": "answer_banking_question",
+                        "description": "Answer a banking question using the RAG system with RBC documentation.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "question": {
+                                    "type": "string",
+                                    "description": "The banking question to answer"
+                                }
+                            },
+                            "required": ["question"]
+                        }
+                    },
+                    {
+                        "name": "list_user_accounts",
+                        "description": "List all accounts for a given user.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                }
+                            },
+                            "required": ["user_id"]
+                        }
+                    },
+                    {
+                        "name": "list_target_accounts",
+                        "description": "List all other accounts this user can transfer to.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "from_account": {
+                                    "type": "string",
+                                    "description": "The source account number"
+                                }
+                            },
+                            "required": ["user_id", "from_account"]
+                        }
+                    },
+                    {
+                        "name": "transfer_funds",
+                        "description": "Transfer funds from one account to another.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "from_account": {
+                                    "type": "string",
+                                    "description": "The source account number"
+                                },
+                                "to_account": {
+                                    "type": "string",
+                                    "description": "The destination account number"
+                                },
+                                "amount": {
+                                    "type": "string",
+                                    "description": "The amount to transfer"
+                                }
+                            },
+                            "required": ["user_id", "from_account", "to_account", "amount"]
+                        }
+                    },
+                    {
+                        "name": "get_account_balance",
+                        "description": "Get the balance of a specific account.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "account_number": {
+                                    "type": "string",
+                                    "description": "The account number"
+                                }
+                            },
+                            "required": ["user_id", "account_number"]
+                        }
+                    },
+                    {
+                        "name": "get_transaction_history",
+                        "description": "Get the transaction history for a specific account.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "user_id": {
+                                    "type": "string",
+                                    "description": "The ID of the user"
+                                },
+                                "account_number": {
+                                    "type": "string",
+                                    "description": "The account number"
+                                },
+                                "days": {
+                                    "type": "integer",
+                                    "description": "Number of days of history to retrieve (default: 30)"
+                                }
+                            },
+                            "required": ["user_id", "account_number"]
+                        }
+                    }
+                ]
+>>>>>>> main
             }]
             
             # Create a model with the tools
             model = genai.GenerativeModel(
+<<<<<<< HEAD
                 model_name=MODEL_CONFIG["model_name"],
                 generation_config=genai.GenerationConfig(
                     temperature=MODEL_CONFIG["temperature"]
@@ -399,6 +594,24 @@ class InteractiveBankingAssistant:
             # Clean up the response by removing generic messages
             assistant_response = self._clean_response(assistant_response)
             
+=======
+                model_name='gemini-1.5-pro',
+                generation_config=genai.GenerationConfig(
+                    temperature=0
+                ),
+                tools=tool_config,
+                tool_config={"function_calling_config": {"mode": "ANY"}}
+            )
+            
+            # Generate content with system instructions
+            response = await asyncio.to_thread(
+                model.generate_content,
+                [system_instructions, prompt]
+            )
+            
+            # Process and print response
+            assistant_response = await self._process_response(response)
+>>>>>>> main
             print("\n🔁 Assistant:")
             print(assistant_response)
             
@@ -408,6 +621,7 @@ class InteractiveBankingAssistant:
             return assistant_response
             
         except Exception as e:
+<<<<<<< HEAD
             error_msg = random.choice(RESPONSE_TEMPLATES["error"]).format(error=str(e))
             print(f"\n❌ {error_msg}")
             return error_msg
@@ -433,6 +647,14 @@ class InteractiveBankingAssistant:
     
     async def run_interactive(self):
         """Run the assistant in interactive mode."""
+=======
+            error_msg = f"Error: {str(e)}"
+            print(f"\n❌ {error_msg}")
+            return error_msg
+    
+    async def run_interactive(self):
+        """Run the assistant in interactive mode"""
+>>>>>>> main
         try:
             await self.initialize_session()
             
@@ -444,6 +666,7 @@ class InteractiveBankingAssistant:
                 try:
                     user_input = input("\n💬 You: ")
                     
+<<<<<<< HEAD
                     # Check for exit command
                     command, _ = IntentDetector.detect_command(user_input)
                     if command == "exit":
@@ -457,6 +680,29 @@ class InteractiveBankingAssistant:
                     if command == "exit":
                         break
                         
+=======
+                    if user_input.lower() in ['exit', 'quit', 'q']:
+                        print("Goodbye! Thank you for using RBC Banking Assistant.")
+                        break
+                    
+                    elif user_input.lower() == 'clear':
+                        self.conversation_history = []
+                        print("Conversation history cleared.")
+                        continue
+                    
+                    elif user_input.lower().startswith('user '):
+                        # Change user ID
+                        new_user_id = user_input[5:].strip()
+                        if new_user_id:
+                            self.user_id = new_user_id
+                            print(f"User ID changed to: {self.user_id}")
+                        else:
+                            print(f"Current user ID: {self.user_id}")
+                        continue
+                    
+                    # Normal message
+                    await self.send_message(user_input)
+>>>>>>> main
                 except KeyboardInterrupt:
                     print("\nInterrupted. Exiting...")
                     break
@@ -468,7 +714,10 @@ class InteractiveBankingAssistant:
             await self.close_session()
 
 async def main():
+<<<<<<< HEAD
     """Main entry point for the interactive banking assistant."""
+=======
+>>>>>>> main
     try:
         assistant = InteractiveBankingAssistant()
         await assistant.run_interactive()

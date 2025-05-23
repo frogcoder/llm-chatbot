@@ -42,17 +42,21 @@
 <li class="toctree-l1"><a class="reference internal" href="chatbot.html">chatbot package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="chatbot.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chatbot.html#module-chatbot.account">chatbot.account module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.account.deposit"><code class="docutils literal notranslate"><span class="pre">deposit()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.account.list_accounts"><code class="docutils literal notranslate"><span class="pre">list_accounts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.account.list_transactions"><code class="docutils literal notranslate"><span class="pre">list_transactions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.account.list_transfer_target_accounts"><code class="docutils literal notranslate"><span class="pre">list_transfer_target_accounts()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.account.transfer_between_accounts"><code class="docutils literal notranslate"><span class="pre">transfer_between_accounts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.account.withdraw"><code class="docutils literal notranslate"><span class="pre">withdraw()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="chatbot.html#module-chatbot.database">chatbot.database module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.auth_user"><code class="docutils literal notranslate"><span class="pre">auth_user()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.init_db"><code class="docutils literal notranslate"><span class="pre">init_db()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.load_accounts"><code class="docutils literal notranslate"><span class="pre">load_accounts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.load_transactions"><code class="docutils literal notranslate"><span class="pre">load_transactions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.load_transfer_target_accounts"><code class="docutils literal notranslate"><span class="pre">load_transfer_target_accounts()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.transfer_fund_between_accounts"><code class="docutils literal notranslate"><span class="pre">transfer_fund_between_accounts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.database.transfer_fund"><code class="docutils literal notranslate"><span class="pre">transfer_fund()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="chatbot.html#module-chatbot.models">chatbot.models module</a><ul>
@@ -60,6 +64,17 @@
 <li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Account.account_name"><code class="docutils literal notranslate"><span class="pre">Account.account_name</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Account.account_number"><code class="docutils literal notranslate"><span class="pre">Account.account_number</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Account.balance"><code class="docutils literal notranslate"><span class="pre">Account.balance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Account.currency_code"><code class="docutils literal notranslate"><span class="pre">Account.currency_code</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction"><code class="docutils literal notranslate"><span class="pre">Transaction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.account_number"><code class="docutils literal notranslate"><span class="pre">Transaction.account_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.amount"><code class="docutils literal notranslate"><span class="pre">Transaction.amount</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.balance_after"><code class="docutils literal notranslate"><span class="pre">Transaction.balance_after</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.date_time"><code class="docutils literal notranslate"><span class="pre">Transaction.date_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.description"><code class="docutils literal notranslate"><span class="pre">Transaction.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.transaction_number"><code class="docutils literal notranslate"><span class="pre">Transaction.transaction_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="chatbot.html#chatbot.models.Transaction.transaction_type"><code class="docutils literal notranslate"><span class="pre">Transaction.transaction_type</span></code></a></li>
 </ul>
 </li>
 </ul>
