@@ -3,12 +3,7 @@ from dotenv import load_dotenv
 from decimal import Decimal
 import os
 import sys
-
-# Add the parent directory to the Python path to import from src
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# Import RAG components
-from src.rag_chatbot import RBCChatbot
+from chatbot.rag.rag_chatbot import RBCChatbot
 
 # Load environment variables from .env file
 load_dotenv("../.env")
