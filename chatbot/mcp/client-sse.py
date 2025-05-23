@@ -363,11 +363,13 @@ You are my RBC banking assistant. You can help me with both:
 2. Answering questions about RBC's products and services using your knowledge base
 
 ALWAYS use the appropriate tools when needed:
-- For account balances, ALWAYS use get_account_balance with the account number
+- For account balances, ALWAYS use get_account_balance with account_number="ABC123" for Savings or "DEF456" for Checking
 - For listing accounts, ONLY use list_user_accounts when explicitly asked to show accounts
 - For transfers, ALWAYS use transfer_funds with from_account, to_account, and amount
-- For transaction history, ALWAYS use get_transaction_history with the account number
+- For transaction history, ALWAYS use get_transaction_history with account_number="ABC123" for Savings or "DEF456" for Checking
 - For product/service questions, ALWAYS use answer_banking_question
+
+CRITICAL: When I ask about "my balance" or "account balance", ALWAYS use get_account_balance, NOT answer_banking_question.
 
 IMPORTANT: For transfers and balance checks, use the account numbers directly:
 - Savings account: ABC123
@@ -417,7 +419,7 @@ NEVER say you don't have access to account information - use the tools instead.
             return response_text
         
         # For non-banking questions, use a special flag in the prompt
-        if not is_transfer_request and "?" in user_input:
+        if not is_transfer_request and "?" in user_input and not any(keyword in user_input.lower() for keyword in ["balance", "account", "money", "savings", "checking"]):
             # Add a flag to indicate this is likely a general question
             self.conversation_history.append({"role": "system", "content": "This appears to be a general question, not a banking operation. Use answer_banking_question for this."})
         
@@ -435,10 +437,10 @@ You are an RBC Banking Assistant helping user {self.user_id}.
 
 IMPORTANT INSTRUCTIONS:
 1. For account information and operations, use ONLY the appropriate banking tool:
-   - For checking balances: ALWAYS use get_account_balance
+   - For checking balances: ALWAYS use get_account_balance with account_number="ABC123" for Savings or "DEF456" for Checking
    - For listing accounts: ONLY use list_user_accounts when the user explicitly asks to see their accounts
    - For transfers: ALWAYS use transfer_funds with from_account, to_account, and amount
-   - For transaction history: ALWAYS use get_transaction_history
+   - For transaction history: ALWAYS use get_transaction_history with account_number="ABC123" for Savings or "DEF456" for Checking
 
 2. For general banking questions about RBC products and services, ALWAYS use answer_banking_question.
 

@@ -151,7 +151,8 @@ def transfer_fund(user_id: str, from_account: str, to_account: str,
 
 def load_transactions(user_id: str, account: str, from_date: date, to_date: date):
     sql_account_number = "SELECT AccountNumber FROM Accounts WHERE UserId=:user_id AND AccountName=:account_name"
-    sql_transactions = ("SELECT TransactionNumber, AccountNumber, TransactionDateTime, TransactionTypeCode, Amount, BalanceAfter, OtherAccountNumber, Description"
+    sql_transactions = ("SELECT TransactionNumber, AccountNumber, TransactionDateTime, TransactionTypeCode, Amount, BalanceAfter, OtherAccountNumber, Description "
+                        "FROM Transactions "
                         "WHERE AccountNumber=:account_number AND TransactionDateTime>=:from_time AND TransactionDateTime<:before_time")
     before_date = to_date + timedelta(days=1)
     from_time = datetime.combine(from_date, datetime.min.time()).isoformat()
