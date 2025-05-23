@@ -120,7 +120,7 @@ class InteractiveBankingAssistant:
                         except Exception as e:
                             result.append(f"I'm sorry, I couldn't complete that action: {str(e)}")
                 
-                return "\n".join(result) if result else "I'm looking into that for you..."
+                return "\n".join(result) if result else "Hello! How can I help you with your banking needs today?"
             else:
                 # Simple text response
                 return response.text
