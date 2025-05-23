@@ -3,15 +3,24 @@ from dotenv import load_dotenv
 from decimal import Decimal
 import os
 import sys
+import datetime
 
-# Add the parent directory to the Python path to import from src
+# Add the parent directory to the Python path to import from src and chatbot
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import RAG components
 from src.rag_chatbot import RBCChatbot
 
+# Import the actual database functions
+from chatbot.account import list_accounts, list_transfer_target_accounts, transfer_between_accounts
+from chatbot.database import init_db
+from chatbot.models import Account
+
 # Load environment variables from .env file
 load_dotenv("../.env")
+
+# Initialize the database if it doesn't exist
+init_db()
 
 # Initialize the RAG chatbot
 chatbot = RBCChatbot()
@@ -62,128 +71,99 @@ def transfer_funds(user_id: str, from_account: str, to_account: str, amount: str
 
 # Tool 4: Get account balance
 @mcp.tool()
-def get_account_balance(user_id: str, account_number: str) -> str:
+def get_account_balance(user_id: str, account_number: str) -> dict:
     """Get the balance of a specific account."""
     print(f'[DEBUG] get_account_balance called with user_id={user_id}, account_number={account_number}')
-    balance_info = get_balance(user_id, account_number)
-    return balance_info
+    
+    # Find the account in the user's accounts
+    accounts = list_accounts(user_id)
+    for account in accounts:
+        if account.account_number == account_number:
+            return {
+                "account_number": account.account_number,
+                "account_name": account.account_name,
+                "balance": str(account.balance),
+                "currency": "CAD"
+            }
+    
+    return {"error": f"Account {account_number} not found."}
 
 # Tool 5: Get transaction history
 @mcp.tool()
 def get_transaction_history(user_id: str, account_number: str, days: int = 30) -> list[dict]:
     """Get the transaction history for a specific account."""
     print(f"[DEBUG] get_transaction_history called with user_id={user_id}, account_number={account_number}, days={days}")
-    transactions = get_transactions(user_id, account_number, days)
-    print(f"[DEBUG] Transactions: {len(transactions)} transactions found")
-    return [transaction.__dict__ for transaction in transactions]
-
-
-
-# ================================
-# Simulated in-memory account system (mock database)
-# ================================
-from dataclasses import dataclass
-
-# A simple data structure representing a bank account
-@dataclass
-class Account:
-    account_name: str
-    account_number: str
-
-@dataclass
-class Balance:
-    account_number: str
-    account_name: str
-    balance: Decimal
-    currency: str = "CAD"
-
-@dataclass
-class Transaction:
-    transaction_id: str
-    date: str
-    description: str
-    amount: Decimal
-    transaction_type: str  # "debit" or "credit"
-    balance_after: Decimal
-
-# Hardcoded in-memory database for demonstration purposes
-_fake_db = {
-    "user_abc123": [
-        Account("Savings", "ABC123"),
-        Account("Checking", "DEF456"),
-    ]
-}
-
-_balance_db = {
-    "user_abc123": {
-        "ABC123": Balance("ABC123", "Savings", Decimal("5000.00")),
-        "DEF456": Balance("DEF456", "Checking", Decimal("2500.75")),
-    }
-}
-
-_transactions_db = {
-    "user_abc123": {
-        "ABC123": [
-            Transaction("TXN001", "2025-05-20", "Direct Deposit - Salary", Decimal("3000.00"), "credit", Decimal("5000.00")),
-            Transaction("TXN002", "2025-05-18", "Interest Payment", Decimal("15.50"), "credit", Decimal("2000.00")),
-            Transaction("TXN003", "2025-05-15", "ATM Withdrawal", Decimal("-200.00"), "debit", Decimal("1984.50")),
-        ],
-        "DEF456": [
-            Transaction("TXN004", "2025-05-21", "Grocery Store", Decimal("-85.25"), "debit", Decimal("2500.75")),
-            Transaction("TXN005", "2025-05-20", "Transfer from Savings", Decimal("500.00"), "credit", Decimal("2586.00")),
-            Transaction("TXN006", "2025-05-19", "Online Purchase", Decimal("-45.99"), "debit", Decimal("2086.00")),
-            Transaction("TXN007", "2025-05-18", "Coffee Shop", Decimal("-12.50"), "debit", Decimal("2131.99")),
-        ]
-    }
-}
-
-# Get all accounts for a specific user
-def list_accounts(user_id: str) -> list[Account]:
-    print(f"[DEBUG] list_accounts called with user_id={user_id}")
-    return _fake_db.get(user_id, [])
-
-# Get transfer targets (all accounts except the source account)
-def list_transfer_target_accounts(user_id: str, from_account: str) -> list[Account]:
-    print(f"[DEBUG] list_transfer_target_accounts called with user_id={user_id}, from_account={from_account}")
-    return [acc for acc in list_accounts(user_id) if acc.account_number != from_account]
-
-# Simulate transferring money between two accounts
-def transfer_between_accounts(user_id: str, from_account: str, to_account: str, amount):
-    print(f"[DEBUG] list_accounts(user_id): {list_accounts(user_id)}")
-    print(f"[TRANSFER] Transferring {amount} from {from_account} to {to_account} for user {user_id}")
-
-    if user_id in _balance_db:
-        if from_account in _balance_db[user_id]:
-            _balance_db[user_id][from_account].balance -= amount
-        if to_account in _balance_db[user_id]:
-            _balance_db[user_id][to_account].balance += amount
-
-# Get account balance
-def get_balance(user_id: str, account_number: str) -> dict:
-    print(f"[DEBUG] get_balance called with user_id={user_id}, account_number={account_number}")
-
-    if user_id in _balance_db and account_number in _balance_db[user_id]:
-        balance = _balance_db[user_id][account_number]
-        return {
-            "account_number": balance.account_number,
-            "account_name": balance.account_name,
-            "balance": str(balance.balance),
-            "currency": balance.currency
-        }
-    else:
-        return {"error": f"Account {account_number} not found."}
     
-# Get transaction history
-def get_transactions(user_id: str, account_number: str, days: int = 30) -> list[Transaction]:
-    print(f"[DEBUG] get_transaction_history called with user_id={user_id}, account_number={account_number}, days={days}")
-
-    if user_id in _transactions_db and account_number in _transactions_db[user_id]:
-        transactions = _transactions_db[user_id][account_number]
-        print(f"[DEBUG] Returning: {len(transactions)} transactions")
-        return transactions
-    else:
-        print(f"[DEBUG] No transactions found for user_id={user_id}, account_number={account_number}")
-        return []
+    # Connect to the database to get transaction history
+    import sqlite3
+    from chatbot.database import DB_FILE
+    
+    con = sqlite3.connect(DB_FILE)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    
+    # Calculate the date range
+    today = datetime.datetime.now()
+    start_date = (today - datetime.timedelta(days=days)).isoformat()
+    
+    # Query for transactions
+    cur.execute("""
+        SELECT TransactionNumber, TransferDateTime, 
+               CASE 
+                   WHEN FromAccountNumber = :account_number THEN 'debit' 
+                   ELSE 'credit' 
+               END as transaction_type,
+               CASE 
+                   WHEN FromAccountNumber = :account_number THEN -Amount 
+                   ELSE Amount 
+               END as amount,
+               CASE 
+                   WHEN FromAccountNumber = :account_number THEN 'Transfer to ' || ToAccountNumber
+                   ELSE 'Transfer from ' || FromAccountNumber
+               END as description
+        FROM Transfers
+        WHERE (FromAccountNumber = :account_number OR ToAccountNumber = :account_number)
+        AND TransferDateTime >= :start_date
+        ORDER BY TransferDateTime DESC
+    """, {"account_number": account_number, "start_date": start_date})
+    
+    rows = cur.fetchall()
+    
+    # Get the current balance
+    accounts = list_accounts(user_id)
+    current_balance = None
+    for account in accounts:
+        if account.account_number == account_number:
+            current_balance = account.balance
+            break
+    
+    # Create transaction objects
+    transactions = []
+    running_balance = current_balance if current_balance is not None else Decimal("0")
+    
+    for row in rows:
+        amount = Decimal(str(row['amount']))
+        
+        # For display purposes, adjust the running balance
+        if row['transaction_type'] == 'debit':
+            # For past transactions, we add the amount back since we're going backwards in time
+            running_balance = running_balance - amount
+        else:
+            running_balance = running_balance - amount
+        
+        transaction = {
+            "transaction_id": row['TransactionNumber'],
+            "date": row['TransferDateTime'].split('T')[0],  # Just the date part
+            "description": row['description'],
+            "amount": str(amount),
+            "transaction_type": row['transaction_type'],
+            "balance_after": str(running_balance)
+        }
+        transactions.append(transaction)
+    
+    con.close()
+    print(f"[DEBUG] Returning: {len(transactions)} transactions")
+    return transactions
 
 # Run the MCP server using SSE transport
 if __name__ == "__main__":

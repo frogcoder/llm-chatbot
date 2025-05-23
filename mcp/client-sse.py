@@ -14,7 +14,7 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 class InteractiveBankingAssistant:
     def __init__(self):
         self.conversation_history = []
-        self.user_id = "user_abc123"  # Default user ID
+        self.user_id = "test1"  # Default user ID from the database
         self.session = None
         self.read_stream = None
         self.write_stream = None

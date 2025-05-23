@@ -31,7 +31,21 @@ def load_accounts(user_id: str) -> list[Account]:
     :param user_id: The user ID of the account owner
     :return: All the accounts that belong the the user
     """
-    pass
+    sql = "SELECT AccountNumber, AccountName, Balance FROM Accounts WHERE UserId=:user_id"
+    con = sqlite3.connect(DB_FILE)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute(sql, {"user_id": user_id})
+    rows = cur.fetchall()
+    accounts = []
+    for row in rows:
+        account = Account()
+        account.account_number = row['AccountNumber']
+        account.account_name = row['AccountName']
+        account.balance = Decimal(str(row['Balance']))
+        accounts.append(account)
+    con.close()
+    return accounts
 
 
 def load_transfer_target_accounts(user_id: str, from_account: str) -> list[Account]:
@@ -42,7 +56,25 @@ def load_transfer_target_accounts(user_id: str, from_account: str) -> list[Accou
     :param from_account: The account number or account name that the fund would be transferred from.
     :return: All the accounts that the specified account can transfer to.
     """
-    pass
+    sql = """
+    SELECT AccountNumber, AccountName, Balance 
+    FROM Accounts 
+    WHERE UserId=:user_id AND AccountNumber!=:from_account
+    """
+    con = sqlite3.connect(DB_FILE)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute(sql, {"user_id": user_id, "from_account": from_account})
+    rows = cur.fetchall()
+    accounts = []
+    for row in rows:
+        account = Account()
+        account.account_number = row['AccountNumber']
+        account.account_name = row['AccountName']
+        account.balance = Decimal(str(row['Balance']))
+        accounts.append(account)
+    con.close()
+    return accounts
 
 
 def transfer_fund_between_accounts(user_id: str,
@@ -56,7 +88,53 @@ def transfer_fund_between_accounts(user_id: str,
     :param to_account: The account number or account name that the fund would be transferred to.
     :param amount: The amount that is going to be transfered.
     """
-    pass
+    con = sqlite3.connect(DB_FILE)
+    cur = con.cursor()
+    
+    try:
+        # Start a transaction
+        con.execute("BEGIN TRANSACTION")
+        
+        # Deduct from source account
+        cur.execute(
+            "UPDATE Accounts SET Balance = Balance - :amount WHERE UserId=:user_id AND AccountNumber=:account_number",
+            {"amount": amount, "user_id": user_id, "account_number": from_account}
+        )
+        
+        # Add to destination account
+        cur.execute(
+            "UPDATE Accounts SET Balance = Balance + :amount WHERE UserId=:user_id AND AccountNumber=:account_number",
+            {"amount": amount, "user_id": user_id, "account_number": to_account}
+        )
+        
+        # Record the transfer
+        import uuid
+        import datetime
+        transaction_id = str(uuid.uuid4())
+        current_time = datetime.datetime.now().isoformat()
+        
+        cur.execute(
+            """
+            INSERT INTO Transfers (TransactionNumber, FromAccountNumber, ToAccountNumber, TransferDateTime, Amount)
+            VALUES (:transaction_id, :from_account, :to_account, :transfer_time, :amount)
+            """,
+            {
+                "transaction_id": transaction_id,
+                "from_account": from_account,
+                "to_account": to_account,
+                "transfer_time": current_time,
+                "amount": amount
+            }
+        )
+        
+        # Commit the transaction
+        con.commit()
+    except Exception as e:
+        # Rollback in case of error
+        con.rollback()
+        raise e
+    finally:
+        con.close()
 
 
 def init_db():

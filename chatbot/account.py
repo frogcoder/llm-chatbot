@@ -1,5 +1,6 @@
 from decimal import Decimal
 from chatbot.models import Account
+from chatbot.database import load_accounts, load_transfer_target_accounts, transfer_fund_between_accounts
 
 
 def list_accounts(user_id: str) -> list[Account]:
@@ -9,7 +10,7 @@ def list_accounts(user_id: str) -> list[Account]:
     :param user_id: The user ID of the account owner.
     :return: All accounts that are avaialbe for transfering.
     """
-    pass
+    return load_accounts(user_id)
 
 
 def list_transfer_target_accounts(user_id: str,
@@ -21,7 +22,7 @@ def list_transfer_target_accounts(user_id: str,
     :param from_account: The account number or account name that the fund will be transfered from.
     :return: All the accounts that funds can be transfered from the specified account.
     """
-    pass
+    return load_transfer_target_accounts(user_id, from_account)
 
 
 def transfer_between_accounts(user_id: str,
@@ -33,4 +34,4 @@ def transfer_between_accounts(user_id: str,
     :param from_account: The account number or account name that the fund will be transfered from.
     :param to_account: The account number or account name that the fund will be transfered to.
     """
-    pass
+    transfer_fund_between_accounts(user_id, from_account, to_account, amount)
