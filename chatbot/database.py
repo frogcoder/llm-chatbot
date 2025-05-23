@@ -97,7 +97,8 @@ def transfer_fund(user_id: str, from_account: str, to_account: str,
     :param description: Optional description of the nature of the transaction.
     """
     sql_account_number = "SELECT AccountNumber FROM Accounts WHERE UserId=:user_id AND AccountName=:account_name"
-    sql_balance_update = "UPDATE Accounts SET Balance = Balance + :amount WHERE AccountNumber=:account_number"
+    # We'll use direct SQL statements instead of this variable to avoid issues
+    # sql_balance_update = "UPDATE Accounts SET Balance = Balance + :amount WHERE AccountNumber=:account_number"
     sql_transaction = """
         INSERT INTO Transactions (TransactionNumber, AccountNumber, OtherAccountNumber, TransactionDateTime, Amount, BalanceAfter, TransactionTypeCode) 
         VALUES (:transaction_number, :account_number, :other_account_number, :date_time, :amount, :balance_after, :transaction_type_code)
@@ -118,26 +119,32 @@ def transfer_fund(user_id: str, from_account: str, to_account: str,
     to_account_number = to_account_query[0] if to_account_query else to_account
 
     # Update from account balance (subtract amount)
-    cur.execute(sql_balance_update, {
-        "account_number": from_account_number,
-        "amount": -amount
-    })
-    
-    # Get the new balance
-    cur.execute("SELECT Balance FROM Accounts WHERE AccountNumber=:account_number", 
-                {"account_number": from_account_number})
-    from_account_balance = cur.fetchone()[0]
+    try:
+        # First update the from account (subtract amount)
+        cur.execute("UPDATE Accounts SET Balance = Balance + :amount WHERE AccountNumber=:account_number", {
+            "account_number": from_account_number,
+            "amount": -amount
+        })
+        
+        # Get the new balance
+        cur.execute("SELECT Balance FROM Accounts WHERE AccountNumber=:account_number", 
+                    {"account_number": from_account_number})
+        from_account_balance = cur.fetchone()[0]
 
-    # Update to account balance (add amount)
-    cur.execute(sql_balance_update, {
-        "account_number": to_account_number,
-        "amount": amount
-    })
-    
-    # Get the new balance
-    cur.execute("SELECT Balance FROM Accounts WHERE AccountNumber=:account_number", 
-                {"account_number": to_account_number})
-    to_account_balance = cur.fetchone()[0]
+        # Update to account balance (add amount)
+        cur.execute("UPDATE Accounts SET Balance = Balance + :amount WHERE AccountNumber=:account_number", {
+            "account_number": to_account_number,
+            "amount": amount
+        })
+        
+        # Get the new balance
+        cur.execute("SELECT Balance FROM Accounts WHERE AccountNumber=:account_number", 
+                    {"account_number": to_account_number})
+        to_account_balance = cur.fetchone()[0]
+    except Exception as e:
+        print(f"Error updating account balances: {str(e)}")
+        con.rollback()
+        raise e
     
     cur.executemany(sql_transaction, [
         { "transaction_number": transaction_number,

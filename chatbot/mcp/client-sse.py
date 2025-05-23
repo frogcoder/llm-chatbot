@@ -115,13 +115,24 @@ class InteractiveBankingAssistant:
                                         result.append("The transfer has been processed.")
                                 elif function_name == "get_transaction_history":
                                     try:
-                                        if isinstance(parsed_result, list):
+                                        if isinstance(parsed_result, dict) and "error" in parsed_result:
+                                            result.append(f"I couldn't retrieve your transaction history: {parsed_result['error']}")
+                                        elif isinstance(parsed_result, list) and len(parsed_result) > 0:
                                             result.append(f"Here are the recent transactions for your account:")
                                             for i, transaction in enumerate(parsed_result[:5]):  # Show only first 5 transactions
-                                                date = transaction.get('date', 'Unknown date')
-                                                desc = transaction.get('description', 'Transaction')
-                                                amount = transaction.get('amount', '0.00')
-                                                result.append(f"- {date}: {desc} - {amount}")
+                                                try:
+                                                    # Try to extract date from date_time if it exists
+                                                    if 'date_time' in transaction:
+                                                        date = str(transaction['date_time']).split()[0]  # Get just the date part
+                                                    else:
+                                                        date = transaction.get('date', 'Unknown date')
+                                                        
+                                                    desc = transaction.get('description', 'Transaction')
+                                                    amount = transaction.get('amount', '0.00')
+                                                    result.append(f"- {date}: {desc} - {amount}")
+                                                except Exception as e:
+                                                    print(f"Error formatting transaction: {e}")
+                                                    result.append(f"- Transaction {i+1}")
                                             if len(parsed_result) > 5:
                                                 result.append(f"...and {len(parsed_result) - 5} more transactions.")
                                         else:

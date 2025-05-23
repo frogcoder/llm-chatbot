@@ -73,15 +73,20 @@ def transfer_funds(user_id: str, from_account: str, to_account: str, amount: str
 def get_account_balance(user_id: str, account_number: str) -> dict:
     """Get the balance of a specific account."""
     print(f'[DEBUG] get_account_balance called with user_id={user_id}, account_number={account_number}')
-    account = next((a for a in list_accounts(user_id) if a.account_number == account_number), None)
-    if account:
-        return {
-            "account_number": account.account_number,
-            "account_name": account.account_name,
-            "balance": str(account.balance),
-            "currency": account.currency_code
-        }
-    return {"error": "Account not found"}
+    try:
+        accounts = list_accounts(user_id)
+        account = next((a for a in accounts if a.account_number == account_number), None)
+        if account:
+            return {
+                "account_number": account.account_number,
+                "account_name": account.account_name,
+                "balance": str(account.balance),
+                "currency": account.currency_code
+            }
+        return {"error": "Account not found"}
+    except Exception as e:
+        print(f"Error in get_account_balance: {str(e)}")
+        return {"error": str(e)}
 
 
 # Tool 5: Get transaction history
@@ -89,9 +94,27 @@ def get_account_balance(user_id: str, account_number: str) -> dict:
 def get_transaction_history(user_id: str, account_number: str, days: int = 30) -> list[dict]:
     """Get the transaction history for a specific account."""
     print(f"[DEBUG] get_transaction_history called with user_id={user_id}, account_number={account_number}, days={days}")
-    transactions = list_transactions(user_id, account_number, days)
-    print(f"[DEBUG] Transactions: {len(transactions)} transactions found")
-    return list(map(asdict, transactions))
+    try:
+        transactions = list_transactions(user_id, account_number, days)
+        print(f"[DEBUG] Transactions: {len(transactions)} transactions found")
+        
+        # Convert each transaction to a dictionary manually to avoid asdict() issues
+        result = []
+        for tx in transactions:
+            tx_dict = {
+                "transaction_number": tx.transaction_number,
+                "account_number": tx.account_number,
+                "date": tx.date_time.strftime("%Y-%m-%d"),
+                "transaction_type": tx.transaction_type,
+                "amount": str(tx.amount),
+                "description": tx.description,
+                "balance_after": str(tx.balance_after)
+            }
+            result.append(tx_dict)
+        return result
+    except Exception as e:
+        print(f"Error in get_transaction_history: {str(e)}")
+        return {"error": str(e)}
 
 
 # Run the MCP server using SSE transport
