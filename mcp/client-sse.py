@@ -463,10 +463,7 @@ NEVER say you don't have access to account information - use the tools instead.
             self.conversation_history.append({"role": "assistant", "content": response_text})
             return response_text
         
-        # For non-banking questions, use a special flag in the prompt
-        if not is_transfer_request and "?" in user_input:
-            # Add a flag to indicate this is likely a general question
-            self.conversation_history.append({"role": "system", "content": "This appears to be a general question, not a banking operation. Use answer_banking_question for this."})
+        # No special flag needed - the system instructions will handle question routing
         
         # For non-greetings, build the prompt with history
         prompt = self.build_prompt(user_input)
