@@ -67,9 +67,27 @@ Always use the appropriate tools when needed:
             # Send to Gemini
             model = genai.GenerativeModel('gemini-1.5-pro')
             
-            # Create a tool config that wraps the MCP session
+            # Get the available tools from the session
+            tools = await self.session.list_tools()
+            
+            # Format tools for Gemini API
             tool_config = [{
-                "function_declarations": self.session.get_tool_specs()
+                "function_declarations": [
+                    {
+                        "name": tool["name"],
+                        "description": tool["description"],
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                param["name"]: {
+                                    "type": param["type"],
+                                    "description": param.get("description", "")
+                                } for param in tool["parameters"]
+                            },
+                            "required": [param["name"] for param in tool["parameters"] if param.get("required", True)]
+                        }
+                    } for tool in tools
+                ]
             }]
             
             response = await asyncio.to_thread(
