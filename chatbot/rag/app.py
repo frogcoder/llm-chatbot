@@ -1,6 +1,6 @@
-from document_loader import load_documents, split_documents
-from vector_store import create_vector_store
-from rag_chatbot import RBCChatbot
+from chatbot.rag.document_loader import load_documents, split_documents
+from chatbot.rag.vector_store import create_vector_store
+from chatbot.rag.rag_chatbot import RBCChatbot
 import os
 import sys
 

@@ -4,14 +4,9 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from langchain.chains import RetrievalQA
 from langchain_google_genai import ChatGoogleGenerativeAI
+from chatbot.rag.vector_store import load_vector_store, create_vector_store
+from chatbot.rag.document_loader import load_documents, split_documents
 
-# Handle imports whether called directly or from MCP
-try:
-    from vector_store import load_vector_store, create_vector_store
-    from document_loader import load_documents, split_documents
-except ImportError:
-    from src.vector_store import load_vector_store, create_vector_store
-    from src.document_loader import load_documents, split_documents
 
 load_dotenv()
 
