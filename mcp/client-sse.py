@@ -35,7 +35,7 @@ class InteractiveBankingAssistant:
         if hasattr(self, 'sse_client'):
             await self.sse_client.__aexit__(None, None, None)
     
-    def _process_response(self, response):
+    async def _process_response(self, response):
         """Process the response from Gemini, handling function calls"""
         try:
             # Check if the response has parts (structured response)
@@ -56,23 +56,48 @@ class InteractiveBankingAssistant:
                         func_call = part.function_call
                         function_name = func_call.name
                         
-                        # Format function call for display (but don't show to user)
-                        args_str = ""
-                        if hasattr(func_call, 'args') and func_call.args:
-                            # Convert args to a readable format
-                            args_dict = {}
-                            for key, value in func_call.args.items():
-                                args_dict[key] = value
-                            args_str = ", ".join(f"{k}={v}" for k, v in args_dict.items())
-                        
-                        # Execute the function call through MCP
+                        # Execute the function call through MCP and wait for result
                         try:
-                            # Call the function through the MCP session
-                            asyncio.create_task(self._execute_function_call(function_name, func_call.args))
+                            # Call the function through the MCP session and await the result
+                            function_result = await self._execute_function_call(function_name, func_call.args)
+                            
+                            # If we got a result from a banking function, format it nicely for the user
+                            if function_name != "answer_banking_question":
+                                # For account-related functions, format a nice response
+                                if function_name == "get_account_balance":
+                                    try:
+                                        if isinstance(function_result, dict) and "balance" in function_result:
+                                            result.append(f"Your {function_result.get('account_name', '')} account ({function_result.get('account_number', '')}) has a balance of {function_result.get('balance', '')} {function_result.get('currency', '')}.")
+                                        else:
+                                            result.append(f"I found your account information: {function_result}")
+                                    except:
+                                        result.append(f"I found your account information: {function_result}")
+                                elif function_name == "list_user_accounts":
+                                    try:
+                                        if isinstance(function_result, list):
+                                            result.append("Here are your accounts:")
+                                            for account in function_result:
+                                                result.append(f"- {account.get('account_name', 'Account')} ({account.get('account_number', '')})")
+                                        else:
+                                            result.append(f"I found your accounts: {function_result}")
+                                    except:
+                                        result.append(f"I found your accounts: {function_result}")
+                                else:
+                                    # Generic handling for other functions
+                                    result.append(f"I've completed that action for you: {function_result}")
+                            else:
+                                # For RAG questions, extract the answer
+                                try:
+                                    if isinstance(function_result, dict) and "answer" in function_result:
+                                        result.append(function_result["answer"])
+                                    else:
+                                        result.append(str(function_result))
+                                except:
+                                    result.append(str(function_result))
                         except Exception as e:
-                            result.append(f"Error: {str(e)}")
+                            result.append(f"I'm sorry, I couldn't complete that action: {str(e)}")
                 
-                return "\n".join(result) if result else "I'm working on your request..."
+                return "\n".join(result) if result else "I'm looking into that for you..."
             else:
                 # Simple text response
                 return response.text
@@ -88,10 +113,14 @@ class InteractiveBankingAssistant:
                 for key, value in args.items():
                     mcp_args[key] = value
             
+            # Add user_id automatically if not provided
+            if function_name != "answer_banking_question" and "user_id" not in mcp_args:
+                mcp_args["user_id"] = self.user_id
+            
             # Call the function through MCP
             result = await self.session.call_tool(function_name, mcp_args)
             
-            # Format the result
+            # Format the result for logging
             if isinstance(result, dict):
                 # Try to pretty print if it's a dict
                 result_str = json.dumps(result, indent=2)
@@ -113,15 +142,12 @@ class InteractiveBankingAssistant:
                 except:
                     result_str = str(result)
             
-            # Print the result
+            # Print the result for debugging
             print(f"\n🔧 Function Result ({function_name}):")
             print(result_str)
             
-            # Add to conversation history - format as assistant message for better context
-            self.conversation_history.append({
-                "role": "assistant",
-                "content": f"Based on my lookup, here's the information you requested:\n\n{result_str}"
-            })
+            # We don't add function results to conversation history anymore
+            # They'll be incorporated into the assistant's response
             
             return result
         except Exception as e:
@@ -137,9 +163,14 @@ You are my RBC banking assistant. You can help me with both:
 1. Banking operations like checking balances and making transfers for user ID: {self.user_id}
 2. Answering questions about RBC's products and services using your knowledge base
 
-Always use the appropriate tools when needed:
-- Use banking tools for account operations
-- Use the RAG system (answer_banking_question) for product/service questions
+ALWAYS use the appropriate tools when needed:
+- For account balances, use get_account_balance
+- For listing accounts, use list_user_accounts
+- For transfers, use transfer_funds
+- For transaction history, use get_transaction_history
+- For product/service questions, use answer_banking_question
+
+NEVER say you don't have access to account information - use the tools instead.
 """
         
         # Add conversation history
@@ -163,18 +194,27 @@ Always use the appropriate tools when needed:
             # Send to Gemini
             model = genai.GenerativeModel('gemini-1.5-pro')
             
-            # For now, let's use a direct approach with the function calling format
-            # that Gemini expects
-            
             # Define the tools directly in the format Gemini expects
             # Add more specific instructions to guide the model
             system_instructions = f"""
 You are an RBC Banking Assistant helping user {self.user_id}.
-- For account information, balances, transfers, use the banking tools.
-- For product questions and general banking information, use answer_banking_question.
-- NEVER show function calls in your responses to the user.
-- Always provide helpful, concise responses.
-- When you need to look up information, tell the user you'll check for them.
+
+IMPORTANT INSTRUCTIONS:
+1. For account information (balances, transfers, etc.), ALWAYS use the appropriate banking tool:
+   - Use get_account_balance to check balances
+   - Use list_user_accounts to list accounts
+   - Use transfer_funds for transfers
+   - Use get_transaction_history for transaction history
+
+2. For general banking questions about products and services, ALWAYS use answer_banking_question.
+
+3. NEVER respond with "I'm working on your request" or similar phrases.
+
+4. NEVER show function calls in your responses to the user.
+
+5. If the user asks about account information, ALWAYS use the appropriate tool rather than saying you don't have access.
+
+6. Be helpful, concise, and professional in your responses.
 """
             
             tool_config = [{
@@ -311,7 +351,7 @@ You are an RBC Banking Assistant helping user {self.user_id}.
             )
             
             # Process and print response
-            assistant_response = self._process_response(response)
+            assistant_response = await self._process_response(response)
             print("\n🔁 Assistant:")
             print(assistant_response)
             
