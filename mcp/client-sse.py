@@ -33,6 +33,84 @@ class InteractiveBankingAssistant:
         if hasattr(self, 'sse_client'):
             await self.sse_client.__aexit__(None, None, None)
     
+    def _process_response(self, response):
+        """Process the response from Gemini, handling function calls"""
+        try:
+            # Check if the response has parts (structured response)
+            if hasattr(response, 'parts'):
+                result = []
+                for part in response.parts:
+                    # Handle text parts
+                    if hasattr(part, 'text') and part.text:
+                        result.append(part.text)
+                    
+                    # Handle function calls
+                    if hasattr(part, 'function_call'):
+                        func_call = part.function_call
+                        function_name = func_call.name
+                        
+                        # Format function call for display
+                        args_str = ""
+                        if hasattr(func_call, 'args') and func_call.args:
+                            # Convert args to a readable format
+                            args_dict = {}
+                            for key, value in func_call.args.items():
+                                args_dict[key] = value
+                            args_str = ", ".join(f"{k}={v}" for k, v in args_dict.items())
+                        
+                        # Add formatted function call to result
+                        result.append(f"[Function Call: {function_name}({args_str})]")
+                        
+                        # Execute the function call through MCP
+                        try:
+                            # Call the function through the MCP session
+                            asyncio.create_task(self._execute_function_call(function_name, func_call.args))
+                        except Exception as e:
+                            result.append(f"[Error executing function: {str(e)}]")
+                
+                return "\n".join(result)
+            else:
+                # Simple text response
+                return response.text
+        except Exception as e:
+            return f"Error processing response: {str(e)}"
+    
+    async def _execute_function_call(self, function_name, args):
+        """Execute a function call through the MCP session"""
+        try:
+            # Convert args from Gemini format to what MCP expects
+            mcp_args = {}
+            for key, value in args.items():
+                mcp_args[key] = value
+            
+            # Call the function through MCP
+            result = await self.session.call_tool(function_name, mcp_args)
+            
+            # Format the result
+            if isinstance(result, dict):
+                result_str = "\n".join(f"{k}: {v}" for k, v in result.items())
+            elif isinstance(result, list):
+                result_str = "\n".join(str(item) for item in result)
+            else:
+                result_str = str(result)
+            
+            # Print the result
+            print(f"\n🔧 Function Result ({function_name}):")
+            print(result_str)
+            
+            # Add to conversation history
+            self.conversation_history.append({
+                "role": "function",
+                "name": function_name,
+                "content": result_str
+            })
+            
+            return result
+        except Exception as e:
+            error_msg = f"Error executing function {function_name}: {str(e)}"
+            print(f"\n❌ {error_msg}")
+            return {"error": error_msg}
+    
     def build_prompt(self, user_input):
         """Build the prompt with conversation history"""
         # Start with system instructions
@@ -201,8 +279,8 @@ Always use the appropriate tools when needed:
                 prompt
             )
             
-            # Print and store response
-            assistant_response = response.text
+            # Process and print response
+            assistant_response = self._process_response(response)
             print("\n🔁 Assistant:")
             print(assistant_response)
             
