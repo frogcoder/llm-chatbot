@@ -1,87 +1,136 @@
-# RBC Bank RAG Chatbot
+# RBC Banking Assistant
 
-A bank Chatbot concept utilizing LLM & RAG with API integrations for RBC Bank documents.
+An intelligent banking assistant that combines LLM capabilities with RAG (Retrieval Augmented Generation) to provide accurate information about RBC banking products and services while enabling account management functionality.
 
-## Current Features
+## Key Features
 
-1. **Document Retrieval**: Automatically scrapes and processes RBC Bank documents
-2. **RAG-based Answers**: Provides accurate responses based on official RBC documentation
-3. **Conversational Interface**: Simple command-line interface for asking questions
+1. **Intelligent Banking Operations**
+   - Account balance inquiries
+   - Fund transfers between accounts
+   - Transaction history retrieval
+   - Account listing and management
 
-## Planned Features
+2. **Knowledge-Based Assistance**
+   - RAG-powered responses using official RBC documentation
+   - Accurate information about banking products and services
+   - Investment and financial planning guidance
 
-1. **Prompt engineering** to classify intents of user messages from frontend UI.
-2. **Authentication Flow**: If transferring funds between the user's accounts, the LLM will handle authentication using an ID and password with function calling. If authentication is successful, we will use function calling or MCP to call the function and transfer funds in database.
-3. **Escalation Path**: If the intent classification is unknown, the chatbot will escalate to a real agent (for this POC, just a text to represent the user is being transferred to a human agent).
-4. **FAQ Handling**: If it's identified as a FAQ, the LLM will provide answers using the RAG-based FAQ document (FAQ source from RBC website).
+3. **Advanced AI Techniques**
+   - **Retrieval Augmented Generation (RAG)**: Combines LLM capabilities with a knowledge base of RBC documents
+   - **Prompt Engineering**: Carefully crafted system instructions to guide the model's behavior
+   - **Intent Detection**: Identifies user intents to route queries appropriately
+   - **Function Calling**: Uses LLM to determine which banking operations to perform
 
-## Setup Instructions
+4. **Modular Architecture**
+   - MCP (Modular Capability Platform) for extensible function calling
+   - Vector database for efficient document retrieval
+   - Configurable response templates and system instructions
 
-### Prerequisites
+## Technical Architecture
 
-- Python 3.8+
-- Google Gemini API key
+### Components
 
-### Installation
+1. **RAG System**
+   - Document loader and processor for RBC banking documents
+   - Vector store using Chroma DB for semantic search
+   - Embedding generation using Google's embedding models
+   - RAG pipeline for answering banking questions with citations
 
-1. Clone this repository:
+2. **Banking Operations**
+   - SQLite database for account and transaction management
+   - Secure fund transfer functionality
+   - Transaction history tracking
+   - Account balance management
+
+3. **Conversation Management**
+   - Intent detection for understanding user queries
+   - Response formatting for consistent user experience
+   - Conversation history tracking for contextual responses
+   - Command handling for system operations
+
+4. **MCP Integration**
+   - Server-side function registration
+   - Client-side function calling
+   - Tool definitions for LLM function selection
+
+### Setup Instructions
+
+1. **Prerequisites**
+   - Python 3.8+
+   - Google Gemini API key
+
+2. **Installation**
    ```bash
-   git clone https://github.com/yourusername/rbc-rag-chatbot.git
-   cd rbc-rag-chatbot
+   # Clone the repository
+   git clone https://github.com/yourusername/rbc-banking-assistant.git
+   cd rbc-banking-assistant
+
+   # Install dependencies
+   pip install -r requirements.txt
+
+   # Create .env file with your API key
+   echo "GEMINI_API_KEY=your_api_key_here" > .env
    ```
 
-2. Install dependencies:
+3. **Document Collection**
    ```bash
-   pip install google-generativeai python-dotenv langchain langchain-google-genai langchain-chroma chromadb pypdf sentence-transformers requests beautifulsoup4 cryptography
+   # Run the document scraper to collect RBC documentation
+   python -m chatbot.rag.rbc_explorer
    ```
 
-3. Create a `.env` file in the project root with your Gemini API key:
-   ```
-   GEMINI_API_KEY=your_api_key_here
-   ```
-
-### Document Collection
-
-The chatbot requires RBC Bank documents to function. These are not included in the repository but can be collected using the included scraper:
-
-1. Run the document scraper:
+4. **Running the Assistant**
    ```bash
-   python rbc_explorer.py
+   # Start the MCP server
+   python -m chatbot.mcp.server-sse_1
+
+   # In another terminal, start the client
+   python -m chatbot.mcp.client-sse
    ```
-
-   This will:
-   - Explore RBC's website
-   - Download relevant PDF documents
-   - Save them to the `rbc_documents` folder
-   - Take approximately 5-10 minutes to complete
-
-### Running the Chatbot
-
-1. Start the chatbot:
-   ```bash
-   python app.py
-   ```
-
-   On first run, the system will:
-   - Process the documents in `rbc_documents`
-   - Create a vector database in `chroma_db`
-   - This initial processing may take several minutes
-
-2. Ask questions about RBC Bank products, services, and policies.
 
 ## Project Structure
 
-- `app.py`: Main application entry point
-- `document_loader.py`: Handles loading and processing PDF documents
-- `vector_store.py`: Manages the vector database for document retrieval
-- `rag_chatbot.py`: Core chatbot logic using RAG
-- `rbc_explorer.py`: Web scraper for collecting RBC documents
+```
+chatbot/
+├── __init__.py
+├── account.py         # Account management functionality
+├── config.py          # Core configuration settings
+├── config_client.py   # Client-specific configuration
+├── database.py        # Database operations
+├── init.sql           # Database initialization
+├── intent_detector.py # User intent detection
+├── models.py          # Data models
+├── response_formatter.py # Response formatting
+├── mcp/
+│   ├── client-sse.py  # Interactive client
+│   ├── server-sse.py  # Basic MCP server
+│   └── server-sse_1.py # Enhanced MCP server with RAG
+└── rag/
+    ├── app.py         # Standalone RAG application
+    ├── document_loader.py # Document processing
+    ├── rag_chatbot.py # RAG implementation
+    ├── rbc_explorer.py # Document collection
+    ├── save_investment_faqs.py # FAQ scraper
+    └── vector_store.py # Vector database management
+```
 
-## Troubleshooting
+## Usage Examples
 
-- **API Rate Limits**: If you encounter rate limit errors, consider:
-  - Switching to a less resource-intensive model
-  - Reducing the number of retrieved documents
-  - Upgrading to a paid tier of the Gemini API
+### Banking Operations
+- Check account balances: "What's my savings account balance?"
+- Transfer funds: "Transfer $50 from my savings to checking account"
+- View transactions: "Show me recent transactions in my checking account"
+- List accounts: "Show me all my accounts"
 
-- **Document Processing Errors**: Some PDFs may fail to process. The system will skip these and continue with the rest.
+### Banking Information
+- Product inquiries: "What are the benefits of an RBC TFSA?"
+- Service questions: "How do I set up direct deposit?"
+- Policy questions: "What is RBC's mortgage pre-approval process?"
+- Investment guidance: "How can I withdraw money from my TFSA account?"
+
+## Technologies Used
+
+- **Google Gemini**: Large language model for natural language understanding
+- **LangChain**: Framework for building LLM applications
+- **ChromaDB**: Vector database for document embeddings
+- **SQLite**: Lightweight database for banking operations
+- **MCP**: Modular Capability Platform for function calling
