@@ -1,4 +1,4 @@
-# RBC Banking Assistant
+# RBC Banking Agent
 
 An intelligent banking assistant that combines LLM capabilities with RAG (Retrieval Augmented Generation) to provide accurate information about RBC banking products and services while enabling account management functionality.
 
@@ -78,7 +78,7 @@ An intelligent banking assistant that combines LLM capabilities with RAG (Retrie
    python -m chatbot.rag.rbc_explorer
    ```
 
-4. **Running the Assistant**
+4. **Running the Agent**
    ```bash
    # Start the MCP server
    python -m chatbot.mcp.server-sse_1
@@ -133,4 +133,4 @@ chatbot/
 - **LangChain**: Framework for building LLM applications
 - **ChromaDB**: Vector database for document embeddings
 - **SQLite**: Lightweight database for banking operations
-- **MCP**: Modular Capability Platform for function calling
+- **MCP**: Moddel Context Protocol for function calling
