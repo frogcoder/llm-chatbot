@@ -3,11 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 import chatbot.database
 from chatbot.models import Account
-<<<<<<< HEAD
 from chatbot.database import load_accounts, load_transfer_target_accounts, transfer_fund_between_accounts
-=======
-from chatbot.models import Transaction
->>>>>>> main
 
 
 def list_accounts(user_id: str) -> list[Account]:
@@ -17,11 +13,7 @@ def list_accounts(user_id: str) -> list[Account]:
     :param user_id: The user ID of the account owner.
     :return: All accounts that are avaialbe for transfering.
     """
-<<<<<<< HEAD
     return load_accounts(user_id)
-=======
-    return chatbot.database.load_accounts(user_id)
->>>>>>> main
 
 
 def list_transfer_target_accounts(user_id: str,
@@ -33,11 +25,7 @@ def list_transfer_target_accounts(user_id: str,
     :param from_account: The account number or account name that the fund will be transfered from.
     :return: All the accounts that funds can be transfered from the specified account.
     """
-<<<<<<< HEAD
     return load_transfer_target_accounts(user_id, from_account)
-=======
-    return chatbot.database.load_transfer_target_accounts(user_id, from_account)
->>>>>>> main
 
 
 def transfer_between_accounts(user_id: str,
@@ -49,40 +37,4 @@ def transfer_between_accounts(user_id: str,
     :param from_account: The account number or account name that the fund will be transfered from.
     :param to_account: The account number or account name that the fund will be transfered to.
     """
-<<<<<<< HEAD
     transfer_fund_between_accounts(user_id, from_account, to_account, amount)
-=======
-    chatbot.database.transfer_fund(user_id, from_account, to_account, amount,
-                                   description)
-
-
-def list_transactions(user_id: str, account: str,
-                      days: int) -> list[Transaction]:
-    """
-    List all the transactions of the specified account.
-
-    :param user_id: The user ID of the owner of the account.
-    :param account: The number or name of the account.
-    :param days: How many days in the past that the transactions need to be queried.
-    :return: The transactions that match conditions set by the arguments.
-    """
-    to_date = date.today()
-    from_date = to_date - timedelta(days=days)
-    return chatbot.database.load_transactions(user_id, account,
-                                              from_date, to_date)
-
-
-def withdraw(user_id: str, account: str, amount: Decimal, description: str=""):
-    transfer_between_accounts(user_id,
-                              account,
-                              chatbot.database.ACCOUNT_WITHDRAW_TO,
-                              amount, description)
-
-
-def deposit(user_id: str, account: str, amount: Decimal, description: str=""):
-    transfer_between_accounts(user_id,
-                              chatbot.database.ACCOUNT_DEPOSIT_FROM,
-                              account,
-                              amount,
-                              description)
->>>>>>> main
