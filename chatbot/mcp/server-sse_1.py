@@ -11,7 +11,7 @@ sys.path.append(parent_dir)
 print(f"Added to Python path: {parent_dir}")
 
 # Import RAG components
-from chatbot.src.rag_chatbot import RBCChatbot
+from chatbot.rag.rag_chatbot import RBCChatbot
 
 # Import the actual database functions
 from chatbot.account import list_accounts, list_transfer_target_accounts, transfer_between_accounts
