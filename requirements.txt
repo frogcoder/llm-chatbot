@@ -1,20 +1,30 @@
-google-generativeai
-python-dotenv
-langchain
-langchain-google-genai
-langchain-chroma
-chromadb
-pypdf
-sentence-transformers
-requests
-beautifulsoup4
-cryptography
-# mcp dependencies 
+# Core dependencies
+google-generativeai>=0.3.2
+python-dotenv>=1.0.0
+langchain>=0.1.0
+langchain-google-genai>=0.0.5
+langchain-community>=0.0.10
+langchain-chroma>=0.0.10
+chromadb>=0.4.18
+
+# Document processing
+pypdf>=3.15.1
+sentence-transformers>=2.2.2
+
+# Web scraping and data collection
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+
+# Security
+cryptography>=41.0.0
+
+# MCP framework
 mcp==0.1.11
 fastapi>=0.100.0
 uvicorn>=0.22.0
-google-generativeai>=0.3.2
-python-dotenv>=1.0.0
 
-# Optional if using Decimal and dataclasses (safe default for all Python 3.7+)
+# Database
+sqlite3; python_version<"3.0"
+
+# Optional for older Python versions
 dataclasses; python_version<"3.7"
