@@ -92,4 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
       sendMessage();
     }
   });
+  
+  // Add event listeners for Enter key in login inputs
+  document.getElementById('username').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      document.getElementById('password').focus();
+    }
+  });
+  
+  document.getElementById('password').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      submitLogin();
+    }
+  });
 });
