@@ -173,6 +173,83 @@ function makeDraggable(element, handle) {
   }
 }
 
+// Make the chat popup resizable
+function makeResizable(element) {
+  const resizers = element.querySelectorAll('.resizer');
+  const minimum_size = 300;
+  let original_width = 0;
+  let original_height = 0;
+  let original_x = 0;
+  let original_y = 0;
+  let original_mouse_x = 0;
+  let original_mouse_y = 0;
+
+  for (let i = 0; i < resizers.length; i++) {
+    const currentResizer = resizers[i];
+    currentResizer.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      
+      // If not already absolute, convert to absolute positioning
+      if (element.style.position !== 'absolute') {
+        const rect = element.getBoundingClientRect();
+        element.style.top = rect.top + 'px';
+        element.style.left = rect.left + 'px';
+        element.style.bottom = 'auto';
+        element.style.right = 'auto';
+        element.style.position = 'absolute';
+      }
+      
+      original_width = parseFloat(getComputedStyle(element).getPropertyValue('width').replace('px', ''));
+      original_height = parseFloat(getComputedStyle(element).getPropertyValue('height').replace('px', ''));
+      original_x = element.getBoundingClientRect().left;
+      original_y = element.getBoundingClientRect().top;
+      original_mouse_x = e.pageX;
+      original_mouse_y = e.pageY;
+      
+      window.addEventListener('mousemove', resize);
+      window.addEventListener('mouseup', stopResize);
+    });
+    
+    function resize(e) {
+      if (currentResizer.classList.contains('resizer-right') || 
+          currentResizer.classList.contains('resizer-both')) {
+        const width = original_width + (e.pageX - original_mouse_x);
+        if (width > minimum_size) {
+          element.style.width = width + 'px';
+        }
+      }
+      
+      if (currentResizer.classList.contains('resizer-bottom') || 
+          currentResizer.classList.contains('resizer-both')) {
+        const height = original_height + (e.pageY - original_mouse_y);
+        if (height > minimum_size) {
+          element.style.height = height + 'px';
+        }
+      }
+      
+      if (currentResizer.classList.contains('resizer-left')) {
+        const width = original_width - (e.pageX - original_mouse_x);
+        if (width > minimum_size) {
+          element.style.width = width + 'px';
+          element.style.left = original_x + (e.pageX - original_mouse_x) + 'px';
+        }
+      }
+      
+      if (currentResizer.classList.contains('resizer-top')) {
+        const height = original_height - (e.pageY - original_mouse_y);
+        if (height > minimum_size) {
+          element.style.height = height + 'px';
+          element.style.top = original_y + (e.pageY - original_mouse_y) + 'px';
+        }
+      }
+    }
+    
+    function stopResize() {
+      window.removeEventListener('mousemove', resize);
+    }
+  }
+}
+
 // Hook up event listeners once the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-button').addEventListener('click', submitLogin);
@@ -206,4 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatPopup = document.getElementById('chat-popup');
   const chatHeader = document.querySelector('.chat-header');
   makeDraggable(chatPopup, chatHeader);
+  
+  // Make the chat popup resizable
+  makeResizable(chatPopup);
 });

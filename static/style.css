@@ -72,12 +72,55 @@ body {
   overflow: hidden;
   z-index: 999;
   animation: slideIn 0.3s forwards;
-  resize: both;
   min-width: 300px;
   min-height: 400px;
   max-width: 800px;
   max-height: 800px;
-  overflow: auto;
+}
+
+.resizer {
+  position: absolute;
+  z-index: 1000;
+}
+
+.resizer-right {
+  cursor: e-resize;
+  height: 100%;
+  width: 5px;
+  right: 0;
+  top: 0;
+}
+
+.resizer-bottom {
+  cursor: s-resize;
+  height: 5px;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+}
+
+.resizer-both {
+  cursor: se-resize;
+  height: 15px;
+  width: 15px;
+  right: 0;
+  bottom: 0;
+}
+
+.resizer-left {
+  cursor: w-resize;
+  height: 100%;
+  width: 5px;
+  left: 0;
+  top: 0;
+}
+
+.resizer-top {
+  cursor: n-resize;
+  height: 5px;
+  width: 100%;
+  top: 0;
+  left: 0;
 }
 
 @keyframes slideIn {
