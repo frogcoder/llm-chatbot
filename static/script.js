@@ -84,4 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-button').addEventListener('click', submitLogin);
   document.getElementById('send-button').addEventListener('click', sendMessage);
   document.getElementById('chat-toggle').addEventListener('click', toggleChat);
+  
+  // Add event listener for Enter key in the message input
+  document.getElementById('message').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
 });
