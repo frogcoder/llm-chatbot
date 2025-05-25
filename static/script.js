@@ -47,7 +47,13 @@ async function submitLogin() {
     if (res.ok && data.status === 'success') {
       accessToken = data.access_token;
       document.getElementById('login-modal').classList.add('hidden');
-      appendMessage('System', '✅ Login successful! You can now proceed.');
+      
+      const chatBox = document.getElementById('chat-box');
+      const msgElem = document.createElement('div');
+      msgElem.classList.add('message', 'success-message');
+      msgElem.innerHTML = '✅ Login successful! You can now proceed.';
+      chatBox.appendChild(msgElem);
+      chatBox.scrollTop = chatBox.scrollHeight;
     } else {
       appendMessage('System', '❌ Login failed. Try again.');
     }
@@ -118,6 +124,52 @@ async function sendMessage() {
   }
 }
 
+// Make the chat popup draggable
+function makeDraggable(element, handle) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  
+  handle.onmousedown = dragMouseDown;
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // Get the mouse cursor position at startup
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // Call a function whenever the cursor moves
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // Calculate the new cursor position
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // Set the element's new position
+    element.style.top = (element.offsetTop - pos2) + "px";
+    element.style.left = (element.offsetLeft - pos1) + "px";
+    // If we're dragging, switch from fixed to absolute positioning
+    if (element.style.position !== 'absolute') {
+      const rect = element.getBoundingClientRect();
+      element.style.top = rect.top + 'px';
+      element.style.left = rect.left + 'px';
+      element.style.bottom = 'auto';
+      element.style.right = 'auto';
+      element.style.position = 'absolute';
+    }
+  }
+
+  function closeDragElement() {
+    // Stop moving when mouse button is released
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
 // Hook up event listeners once the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-button').addEventListener('click', submitLogin);
@@ -146,4 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
       submitLogin();
     }
   });
+  
+  // Make the chat popup draggable by its header
+  const chatPopup = document.getElementById('chat-popup');
+  const chatHeader = document.querySelector('.chat-header');
+  makeDraggable(chatPopup, chatHeader);
 });

@@ -73,6 +73,11 @@ body {
   z-index: 999;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
   animation: slideIn 0.3s forwards;
+  resize: both;
+  min-width: 300px;
+  min-height: 400px;
+  max-width: 800px;
+  max-height: 800px;
 }
 
 @keyframes slideIn {
@@ -99,6 +104,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  cursor: move;
+  user-select: none;
 }
 
 .chat-header-left {
@@ -172,6 +179,16 @@ body {
 .system-message {
   background-color: #f8d7da;
   color: #721c24;
+  margin: 10px auto;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 90%;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
   margin: 10px auto;
   text-align: center;
   border-radius: 8px;
