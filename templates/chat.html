@@ -2,48 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RBC AI Banking Agent</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <!-- MAIN PAGE CONTENT -->
 <div class="homepage-content">
+  <div class="logo-container">
+    <img src="https://www.rbcroyalbank.com/dvl/v1.0/assets/images/logos/rbc-logo-shield.svg" alt="RBC Logo" class="rbc-logo">
+  </div>
   <h1>Welcome to RBC AI Banking Agent</h1>
   <p>Need help with your banking? Talk to our RBC Agent — your 24/7 digital banking support system.</p>
-  <ul>
-    <li>Check FAQs instantly</li>
-    <li>Securely log in to deposit or withdraw money</li>
-    <li>Get friendly and helpful banking support</li>
-  </ul>
+  <div class="features-container">
+    <div class="feature-card">
+      <i class="fas fa-question-circle"></i>
+      <h3>Check FAQs instantly</h3>
+      <p>Get answers to your banking questions right away</p>
+    </div>
+    <div class="feature-card">
+      <i class="fas fa-lock"></i>
+      <h3>Secure Banking</h3>
+      <p>Securely log in to manage your accounts</p>
+    </div>
+    <div class="feature-card">
+      <i class="fas fa-headset"></i>
+      <h3>24/7 Support</h3>
+      <p>Get friendly and helpful banking support anytime</p>
+    </div>
+  </div>
 </div>
 
 <!-- Floating Chatbot Button -->
 <div id="chat-toggle" class="chat-toggle">
-  <i class="fas fa-robot"></i>
+  <i class="fas fa-comment-dots"></i>
+  <span class="chat-tooltip">Chat with RBC Agent</span>
 </div>
 
 <!-- Chat Popup -->
 <div id="chat-popup" class="chat-popup hidden">
   <div class="chat-header">
-    <h3>💬 RBC Agent</h3>
-    <button onclick="toggleChat()">✖</button>
+    <div class="chat-header-left">
+      <img src="https://www.rbcroyalbank.com/dvl/v1.0/assets/images/logos/rbc-logo-shield.svg" alt="RBC Logo" class="chat-logo">
+      <h3>RBC Agent</h3>
+    </div>
+    <button onclick="toggleChat()" class="close-button"><i class="fas fa-times"></i></button>
   </div>
   <div id="chat-box" class="chat-box"></div>
   <div class="input-area">
     <input type="text" id="message" placeholder="Type a message..." />
-    <button id="send-button">Send</button>
+    <button id="send-button"><i class="fas fa-paper-plane"></i></button>
   </div>
 </div>
 
 <!-- Login Modal -->
 <div id="login-modal" class="modal hidden">
   <div class="modal-content">
-    <h2>🔐 Login Required</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
+    <div class="modal-header">
+      <img src="https://www.rbcroyalbank.com/dvl/v1.0/assets/images/logos/rbc-logo-shield.svg" alt="RBC Logo" class="modal-logo">
+      <h2>Login to RBC Banking</h2>
+    </div>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Enter your username" />
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" />
+    </div>
     <button id="login-button">Login</button>
+    <div class="login-footer">
+      <small>Secure login powered by RBC</small>
+    </div>
   </div>
 </div>
 

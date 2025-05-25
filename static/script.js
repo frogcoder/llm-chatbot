@@ -15,8 +15,18 @@ function toggleChat() {
 function appendMessage(sender, message) {
   const chatBox = document.getElementById('chat-box');
   const msgElem = document.createElement('div');
-  msgElem.classList.add('message');
-  msgElem.innerHTML = `<strong>${sender}:</strong> ${message}`;
+  
+  if (sender === 'You') {
+    msgElem.classList.add('message', 'user-message');
+    msgElem.innerHTML = `${message}`;
+  } else if (sender === 'Bot') {
+    msgElem.classList.add('message', 'bot-message');
+    msgElem.innerHTML = `${message}`;
+  } else {
+    msgElem.classList.add('message', 'system-message');
+    msgElem.innerHTML = `${message}`;
+  }
+  
   chatBox.appendChild(msgElem);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
