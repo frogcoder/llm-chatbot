@@ -1,4 +1,4 @@
-# RBC Banking Agent
+# RBC AI Banking Agent
 
 An intelligent banking assistant that combines LLM capabilities with RAG (Retrieval Augmented Generation) to provide accurate information about RBC banking products and services while enabling account management functionality.
 
@@ -21,10 +21,11 @@ An intelligent banking assistant that combines LLM capabilities with RAG (Retrie
    - **Intent Detection**: Identifies user intents to route queries appropriately
    - **Function Calling**: Uses LLM to determine which banking operations to perform
 
-4. **Modular Architecture**
-   - MCP (Modular Capability Platform) for extensible function calling
-   - Vector database for efficient document retrieval
-   - Configurable response templates and system instructions
+4. **Modern User Interface**
+   - Responsive web interface with chat functionality
+   - Draggable and resizable chat window
+   - Secure authentication flow
+   - Real-time typing indicators
 
 ## Technical Architecture
 
@@ -48,10 +49,11 @@ An intelligent banking assistant that combines LLM capabilities with RAG (Retrie
    - Conversation history tracking for contextual responses
    - Command handling for system operations
 
-4. **MCP Integration**
-   - Server-side function registration
-   - Client-side function calling
-   - Tool definitions for LLM function selection
+4. **Web Interface**
+   - Flask-based web server
+   - Modern responsive UI with CSS animations
+   - JWT-based authentication
+   - Asynchronous message handling
 
 ### Setup Instructions
 
@@ -62,8 +64,8 @@ An intelligent banking assistant that combines LLM capabilities with RAG (Retrie
 2. **Installation**
    ```bash
    # Clone the repository
-   git clone https://github.com/yourusername/rbc-banking-assistant.git
-   cd rbc-banking-assistant
+   git clone https://github.com/yourusername/rbc-banking-agent.git
+   cd rbc-banking-agent
 
    # Install dependencies
    pip install -r requirements.txt
@@ -72,45 +74,56 @@ An intelligent banking assistant that combines LLM capabilities with RAG (Retrie
    echo "GEMINI_API_KEY=your_api_key_here" > .env
    ```
 
-3. **Document Collection**
+3. **Document Collection (First-time setup)**
    ```bash
    # Run the document scraper to collect RBC documentation
    python -m chatbot.rag.rbc_explorer
+   
+   # Collect investment FAQs
+   python -m chatbot.rag.save_investment_faqs
    ```
 
 4. **Running the Agent**
    ```bash
-   # Start the MCP server
+   # Start the MCP server in one terminal
    python -m chatbot.mcp.server-sse_1
 
-   # In another terminal, start the client
-   python -m chatbot.mcp.client-sse
+   # In another terminal, start the web application
+   python app.py
    ```
+
+5. **Accessing the Web Interface**
+   - Open your browser and navigate to http://localhost:3000
+   - Click on the chat icon in the bottom right corner
+   - Log in with your credentials (default: test1/password)
+   - Start chatting with the RBC AI Banking Agent
 
 ## Project Structure
 
 ```
-chatbot/
-├── __init__.py
-├── account.py         # Account management functionality
-├── config.py          # Core configuration settings
-├── config_client.py   # Client-specific configuration
-├── database.py        # Database operations
-├── init.sql           # Database initialization
-├── intent_detector.py # User intent detection
-├── models.py          # Data models
-├── response_formatter.py # Response formatting
-├── mcp/
-│   ├── client-sse.py  # Interactive client
-│   ├── server-sse.py  # Basic MCP server
-│   └── server-sse_1.py # Enhanced MCP server with RAG
-└── rag/
-    ├── app.py         # Standalone RAG application
-    ├── document_loader.py # Document processing
-    ├── rag_chatbot.py # RAG implementation
-    ├── rbc_explorer.py # Document collection
-    ├── save_investment_faqs.py # FAQ scraper
-    └── vector_store.py # Vector database management
+├── app.py              # Flask web application
+├── templates/          # HTML templates
+│   └── chat.html       # Main chat interface
+├── static/             # Static assets
+│   ├── script.js       # Client-side JavaScript
+│   └── style.css       # CSS styling
+├── chatbot/
+│   ├── __init__.py
+│   ├── account.py      # Account management functionality
+│   ├── config.py       # Core configuration settings
+│   ├── database.py     # Database operations
+│   ├── intent_detector.py # User intent detection
+│   ├── models.py       # Data models
+│   ├── response_formatter.py # Response formatting
+│   ├── mcp/
+│   │   ├── client_sse.py  # Interactive client
+│   │   └── server_sse.py  # MCP server with RAG
+│   └── rag/
+│       ├── document_loader.py # Document processing
+│       ├── rag_chatbot.py # RAG implementation
+│       ├── rbc_explorer.py # Document collection
+│       ├── save_investment_faqs.py # FAQ scraper
+│       └── vector_store.py # Vector database management
 ```
 
 ## Usage Examples
@@ -133,4 +146,6 @@ chatbot/
 - **LangChain**: Framework for building LLM applications
 - **ChromaDB**: Vector database for document embeddings
 - **SQLite**: Lightweight database for banking operations
-- **MCP**: Moddel Context Protocol for function calling
+- **Flask**: Web application framework
+- **JWT**: JSON Web Tokens for authentication
+- **HTML/CSS/JavaScript**: Frontend web technologies
