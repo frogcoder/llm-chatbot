@@ -17,6 +17,9 @@
   </div>
   <h1>Welcome to RBC AI Banking Agent</h1>
   <p>Need help with your banking? Talk to our RBC Agent — your 24/7 digital banking support system.</p>
+  <div class="disclaimer">
+    <p><i class="fas fa-info-circle"></i> This is a demo application for educational purposes only and is not affiliated with the Royal Bank of Canada.</p>
+  </div>
   <div class="features-container">
     <div class="feature-card">
       <i class="fas fa-question-circle"></i>
@@ -51,7 +54,9 @@
     </div>
     <button onclick="toggleChat()" class="close-button"><i class="fas fa-times"></i></button>
   </div>
-  <div id="chat-box" class="chat-box"></div>
+  <div id="chat-box" class="chat-box">
+    <div class="system-message">This is a demo application for educational purposes only.</div>
+  </div>
   <div class="input-area">
     <input type="text" id="message" placeholder="Type a message..." />
     <button id="send-button"><i class="fas fa-paper-plane"></i></button>

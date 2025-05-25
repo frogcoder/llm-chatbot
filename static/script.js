@@ -57,6 +57,25 @@ async function submitLogin() {
   }
 }
 
+// Show typing indicator
+function showTypingIndicator() {
+  const chatBox = document.getElementById('chat-box');
+  const indicator = document.createElement('div');
+  indicator.classList.add('typing-indicator');
+  indicator.id = 'typing-indicator';
+  indicator.innerHTML = '<span></span><span></span><span></span>';
+  chatBox.appendChild(indicator);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Remove typing indicator
+function removeTypingIndicator() {
+  const indicator = document.getElementById('typing-indicator');
+  if (indicator) {
+    indicator.remove();
+  }
+}
+
 // Send a chat message to the backend
 async function sendMessage() {
   const input = document.getElementById('message');
@@ -73,6 +92,9 @@ async function sendMessage() {
   }
 
   try {
+    // Show typing indicator
+    showTypingIndicator();
+    
     const res = await fetch('/chat', {
       method: 'POST',
       headers: {
@@ -81,9 +103,16 @@ async function sendMessage() {
       },
       body: JSON.stringify({ message })
     });
+    
+    // Remove typing indicator
+    removeTypingIndicator();
+    
     const data = await res.json();
     appendMessage('Bot', data.reply);
   } catch (err) {
+    // Remove typing indicator
+    removeTypingIndicator();
+    
     console.error('Chat error:', err);
     appendMessage('System', '⚠️ Could not send message.');
   }
