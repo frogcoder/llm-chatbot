@@ -1,0 +1,160 @@
+/* Utility hidden class */
+.hidden {
+  display: none !important;
+}
+
+/* Body Reset */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Floating button */
+#chat-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+}
+
+/* Chat popup window */
+/* Always lays out, but hidden by .hidden */
+.chat-popup {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 350px;
+  height: 450px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  overflow: hidden;
+  z-index: 999;
+}
+/* Hide when JS adds .hidden */
+.chat-popup.hidden {
+  display: none;
+}
+
+/* Chat header & box */
+.chat-header {
+  background: #007bff;
+  color: white;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.chat-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.chat-box {
+  flex-grow: 1;
+  padding: 15px;
+  overflow-y: auto;
+  font-size: 14px;
+  background-color: #f9f9f9;
+}
+
+/* Input area */
+.input-area {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+.input-area input {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  font-size: 14px;
+}
+.input-area button {
+  background: #007bff;
+  border: none;
+  padding: 12px 16px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Login Modal container */
+/* Always lays out, but hidden by .hidden */
+.modal {
+  display: flex;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+/* Hide when .hidden is present */
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 300px;
+}
+.modal-content input {
+  width: 90%;
+  padding: 10px;
+  margin: 10px 0;
+}
+.modal-content button {
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* Homepage Welcome Content */
+.homepage-content {
+  text-align: center;
+  margin: 60px auto 100px;
+  max-width: 700px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+.homepage-content h1 {
+  color: #007bff;
+  font-size: 2em;
+}
+.homepage-content p {
+  color: #555;
+  font-size: 1.1em;
+  margin-top: 10px;
+}
+.homepage-content ul {
+  margin-top: 20px;
+  text-align: left;
+  display: inline-block;
+  color: #333;
+}
+.homepage-content ul li {
+  margin-bottom: 10px;
+  font-size: 1em;
+}

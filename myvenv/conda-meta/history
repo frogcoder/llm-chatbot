@@ -1,0 +1,19 @@
+==> 2025-05-24 20:13:03 <==
+# cmd: /Users/omisesan/anaconda3/bin/conda create -p myvenv python=3.11.4
+# conda version: 23.7.4
++defaults/noarch::pip-25.1-pyhc872135_2
++defaults/noarch::tzdata-2025b-h04d1e81_0
++defaults/osx-64::bzip2-1.0.8-h6c40b1e_6
++defaults/osx-64::ca-certificates-2025.2.25-hecd8cb5_0
++defaults/osx-64::libffi-3.4.4-hecd8cb5_1
++defaults/osx-64::ncurses-6.4-hcec6c5f_0
++defaults/osx-64::openssl-3.0.16-h184c1cd_0
++defaults/osx-64::python-3.11.4-hf27a42d_0
++defaults/osx-64::readline-8.2-hca72f7f_0
++defaults/osx-64::setuptools-78.1.1-py311hecd8cb5_0
++defaults/osx-64::sqlite-3.45.3-h6c40b1e_0
++defaults/osx-64::tk-8.6.14-h4d00af3_0
++defaults/osx-64::wheel-0.45.1-py311hecd8cb5_0
++defaults/osx-64::xz-5.6.4-h46256e1_1
++defaults/osx-64::zlib-1.2.13-h4b97444_1
+# update specs: ['python=3.11.4']

@@ -1,3 +1,7 @@
+Flask==2.3.3
+PyJWT==2.8.0
+
+
 # Core dependencies
 google-generativeai>=0.3.2
 python-dotenv>=1.0.0
@@ -19,7 +23,7 @@ beautifulsoup4>=4.12.2
 cryptography>=41.0.0
 
 # MCP framework
-mcp==0.1.11
+mcp==1.9.1
 fastapi>=0.100.0
 uvicorn>=0.22.0
 

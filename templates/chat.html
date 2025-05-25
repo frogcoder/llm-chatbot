@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GRP7 Digital Banking Bot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- MAIN PAGE CONTENT -->
+<div class="homepage-content">
+  <h1>Welcome to GRP7 Digital Banking Bot</h1>
+  <p>Need help with your banking? Talk to our GRP7 Banking Assistant — your 24/7 digital banking support system.</p>
+  <ul>
+    <li>Check FAQs instantly</li>
+    <li>Securely log in to deposit or withdraw money</li>
+    <li>Get friendly and helpful banking support</li>
+  </ul>
+</div>
+
+<!-- Floating Chatbot Button -->
+<div id="chat-toggle" class="chat-toggle">
+  <i class="fas fa-robot"></i>
+</div>
+
+<!-- Chat Popup -->
+<div id="chat-popup" class="chat-popup hidden">
+  <div class="chat-header">
+    <h3>💬 GRP7 Assistant</h3>
+    <button onclick="toggleChat()">✖</button>
+  </div>
+  <div id="chat-box" class="chat-box"></div>
+  <div class="input-area">
+    <input type="text" id="message" placeholder="Type a message..." />
+    <button id="send-button">Send</button>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div id="login-modal" class="modal hidden">
+  <div class="modal-content">
+    <h2>🔐 Login Required</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="login-button">Login</button>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
