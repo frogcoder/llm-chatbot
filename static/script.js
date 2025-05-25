@@ -4,6 +4,11 @@ let accessToken = null;
 function toggleChat() {
   const chatPopup = document.getElementById('chat-popup');
   chatPopup.classList.toggle('hidden');
+  
+  // If we're opening the chat and not logged in, show login modal
+  if (!chatPopup.classList.contains('hidden') && !accessToken) {
+    document.getElementById('login-modal').classList.remove('hidden');
+  }
 }
 
 // Append a message to the chat box
@@ -50,8 +55,9 @@ async function sendMessage() {
   input.value = '';
   appendMessage('You', message);
 
+  // We should already be logged in at this point
   if (!accessToken) {
-    appendMessage('System', '🔒 Please login to continue.');
+    appendMessage('System', '🔒 Session expired. Please login again.');
     document.getElementById('login-modal').classList.remove('hidden');
     return;
   }
