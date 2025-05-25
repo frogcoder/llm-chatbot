@@ -71,13 +71,13 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   overflow: hidden;
   z-index: 999;
-  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
   animation: slideIn 0.3s forwards;
   resize: both;
   min-width: 300px;
   min-height: 400px;
   max-width: 800px;
   max-height: 800px;
+  overflow: auto;
 }
 
 @keyframes slideIn {
@@ -144,6 +144,7 @@ body {
   overflow-y: auto;
   font-size: 15px;
   background-color: #f8f9fa;
+  resize: none; /* Prevent inner resize */
 }
 
 .chat-box .message {
