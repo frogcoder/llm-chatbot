@@ -114,18 +114,18 @@ class InteractiveBankingAssistant:
                                 result.append(formatted_result)
                                 
                         except Exception as e:
-                            error_msg = random.choice(RESPONSE_TEMPLATES["error"]).format(error=str(e))
+                            error_msg = f"I'm sorry, I couldn't complete that action: {str(e)}"
                             result.append(error_msg)
                 
                 # For simple greetings with no function calls, provide a friendly response
                 if not has_function_call and not result:
-                    return random.choice(RESPONSE_TEMPLATES["greeting"])
+                    return "Hello! How can I help with your banking needs today?"
                 
                 # If there's an empty function call, provide a generic response
                 if has_function_call and not result:
                     return "How can I help you with your banking needs today?"
                 
-                return "\n".join(result) if result else random.choice(RESPONSE_TEMPLATES["greeting"])
+                return "\n".join(result) if result else "Hello! How can I help with your banking needs today?"
             else:
                 # Simple text response
                 return response.text
@@ -317,7 +317,7 @@ class InteractiveBankingAssistant:
         command, arg = IntentDetector.detect_command(user_input)
         if command:
             if command == "exit":
-                return RESPONSE_TEMPLATES["farewell"][0]
+                return "Goodbye! Thank you for using RBC Banking Assistant."
             elif command == "clear":
                 self.conversation_history = []
                 return "Conversation history cleared."
@@ -366,7 +366,7 @@ class InteractiveBankingAssistant:
             return assistant_response
             
         except Exception as e:
-            error_msg = RESPONSE_TEMPLATES["error"][0].format(error=str(e))
+            error_msg = f"I'm sorry, I couldn't complete that action: {str(e)}"
             print(f"\n❌ {error_msg}")
             return error_msg
     
@@ -405,7 +405,7 @@ class InteractiveBankingAssistant:
                     # Check for exit command
                     command, _ = IntentDetector.detect_command(user_input)
                     if command == "exit":
-                        print(RESPONSE_TEMPLATES["farewell"][0])
+                        print("Goodbye! Thank you for using RBC Banking Assistant.")
                         break
                     
                     # Process the message

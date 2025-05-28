@@ -9,16 +9,8 @@ COMMANDS = {
 
 # Response templates
 RESPONSE_TEMPLATES = {
-    "farewell": [
-        "Goodbye! Thank you for using RBC Banking Assistant.",
-        "Thank you for using RBC Banking Assistant. Have a great day!",
-        "It was a pleasure assisting you. Goodbye!",
-        "Have a wonderful day! Goodbye!"
-    ],
     "error": [
-        "I'm sorry, I couldn't complete that action: {error}",
-        "There was an error processing your request: {error}",
-        "I encountered a problem: {error}"
+        "I'm sorry, I couldn't complete that action: {error}"
     ]
 }
 
