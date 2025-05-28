@@ -59,13 +59,15 @@ class ResponseFormatter:
         try:
             accounts = ResponseFormatter._extract_accounts(result)
             if accounts and len(accounts) > 0:
-                account_lines = ["Here are your accounts:"]
+                account_lines = ["<p>Here are your accounts:</p>"]
+                account_lines.append("<ul>")
                 for account in accounts:
                     account_lines.append(
-                        f"- {account.get('account_name', 'Account')} "
-                        f"({account.get('account_number', '')})"
+                        f"<li>{account.get('account_name', 'Account')} "
+                        f"({account.get('account_number', '')})</li>"
                     )
-                return "\n".join(account_lines)
+                account_lines.append("</ul>")
+                return "".join(account_lines)
             else:
                 return "You don't have any accounts set up yet."
         except Exception as e:
