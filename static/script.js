@@ -30,7 +30,12 @@ function parseMarkdown(text) {
   const orderedListRegex = /(\d+\.\s+.*(?:\n|$))+/g;
   text = text.replace(orderedListRegex, function(match) {
     const items = match.split(/\n/).filter(item => /^\d+\.\s+/.test(item));
-    const listItems = items.map(item => `<li>${item.replace(/^\d+\.\s+/, '')}</li>`).join('');
+    // Process each list item for markdown before adding to list
+    const listItems = items.map(item => {
+      // Extract the content after the number and period
+      let content = item.replace(/^\d+\.\s+/, '');
+      return `<li>${content}</li>`;
+    }).join('');
     return `<ol>${listItems}</ol>`;
   });
   
@@ -38,15 +43,20 @@ function parseMarkdown(text) {
   const unorderedListRegex = /(\*\s+.*(?:\n|$))+/g;
   text = text.replace(unorderedListRegex, function(match) {
     const items = match.split(/\n/).filter(item => /^\*\s+/.test(item));
-    const listItems = items.map(item => `<li>${item.replace(/^\*\s+/, '')}</li>`).join('');
+    // Process each list item for markdown before adding to list
+    const listItems = items.map(item => {
+      // Extract the content after the asterisk
+      let content = item.replace(/^\*\s+/, '');
+      return `<li>${content}</li>`;
+    }).join('');
     return `<ul>${listItems}</ul>`;
   });
   
-  // Handle bold text
-  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Handle bold text - non-greedy to avoid spanning multiple points
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   
-  // Handle italic text
-  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  // Handle italic text - non-greedy to avoid spanning multiple points
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
   
   // Handle headers
   text = text.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
