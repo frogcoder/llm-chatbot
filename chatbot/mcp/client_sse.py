@@ -197,59 +197,14 @@ class InteractiveBankingAssistant:
                     "error": True
                 }
                 
-            # Convert args from Gemini format to what MCP expects
-            mcp_args = {}
-            if args:  # Check if args is not None before iterating
-                for key, value in args.items():
-                    # Special handling for amount to ensure it's a string
-                    if key == "amount" and function_name == "transfer_funds":
-                        # Remove any $ sign and ensure it's a string
-                        if isinstance(value, (int, float)):
-                            mcp_args[key] = str(value)
-                        elif isinstance(value, str):
-                            # Remove $ and any commas
-                            clean_value = value.replace('$', '').replace(',', '')
-                            mcp_args[key] = clean_value
-                        else:
-                            mcp_args[key] = "0"
-                    else:
-                        mcp_args[key] = value
+            # Create a copy of args to avoid modifying the original
+            mcp_args = args.copy() if args else {}
             
-            # Add user_id automatically if not provided
+            # Add user_id automatically if not provided and needed
             if function_name != "answer_banking_question" and "user_id" not in mcp_args:
                 mcp_args["user_id"] = self.user_id
             
-            # Map account names to account numbers for transfer_funds
-            if function_name == "transfer_funds":
-                # Map from_account if it's a name
-                if "from_account" in mcp_args:
-                    from_acc = str(mcp_args["from_account"]).lower()
-                    for key, value in self.account_mappings.items():
-                        if key in from_acc:
-                            mcp_args["from_account"] = value
-                            break
-                
-                # Map to_account if it's a name
-                if "to_account" in mcp_args:
-                    to_acc = str(mcp_args["to_account"]).lower()
-                    for key, value in self.account_mappings.items():
-                        if key in to_acc:
-                            mcp_args["to_account"] = value
-                            break
-            
-            # Map account names for get_transaction_history and get_account_balance
-            if function_name in ["get_transaction_history", "get_account_balance"] and "account_number" in mcp_args:
-                acc = str(mcp_args["account_number"]).lower()
-                for key, value in self.account_mappings.items():
-                    if key in acc:
-                        mcp_args["account_number"] = value
-                        break
-            
             print(f"\n🔧 Executing function: {function_name} with args: {mcp_args}")
-            
-            # Check if we should skip the function call
-            if "skip_function_call" in mcp_args and mcp_args["skip_function_call"]:
-                return {"answer": random.choice(RESPONSE_TEMPLATES["non_banking"]), "sources": []}
                 
             # Call the function through MCP
             result = await self.session.call_tool(function_name, mcp_args)

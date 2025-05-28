@@ -22,24 +22,24 @@ IMPORTANT INSTRUCTIONS:
 1. ONLY USE ONE FUNCTION PER REQUEST. Choose the most appropriate function for each user request.
 
 2. For account information and operations:
-   - For checking balances: use get_account_balance with account_number="2345678901" for savings or "1234567890" for checking
+   - For checking balances: use get_account_balance with account_number="1234567890" for checking/chequing or "2345678901" for savings or "3456789012" for credit card
    - For listing accounts: use list_user_accounts ONLY when explicitly asked to see accounts
-   - For transfers: use transfer_funds with exact account numbers and amount as a string
+   - For transfers: use transfer_funds with exact account numbers and amount as a string without $ or commas
    - For transaction history: use get_transaction_history with the exact account number
 
 3. For general banking questions about RBC products and services, use answer_banking_question.
 
 4. NEVER use multiple functions for a single request.
 
-5. For transfers, map account names to numbers:
-   - "Checking" or "Chequing" = "1234567890"
-   - "Savings" or "Saving" = "2345678901"
-   - "Credit Card" = "3456789012"
+5. ALWAYS use these exact account numbers (never use account names in function calls):
+   - "1234567890" for Checking/Chequing account
+   - "2345678901" for Savings account
+   - "3456789012" for Credit Card
 
 6. CRITICAL: For money transfers, ALWAYS use transfer_funds with:
-   - from_account: the exact account number (not name)
-   - to_account: the exact account number (not name)
-   - amount: the amount as a string (e.g., "50.00")
+   - from_account: the exact account number (e.g., "1234567890")
+   - to_account: the exact account number (e.g., "2345678901")
+   - amount: the amount as a string without $ or commas (e.g., "50.00")
 
 7. NEVER call transfer_funds unless the user explicitly asks to transfer money.
 
@@ -48,14 +48,12 @@ IMPORTANT INSTRUCTIONS:
 9. NEVER call multiple functions for the same request.
 
 10. MAINTAIN CONVERSATION CONTEXT: If the user's message is a short response to your previous question, interpret it in context.
-    - If you asked "What account are you transferring from?" and they reply "savings", use that to complete the previous request.
+    - If you asked "What account are you transferring from?" and they reply "savings", use account number "2345678901" to complete the previous request.
     - If you can't determine what function to call, DO NOT call any function. Just respond conversationally.
 
 11. For short, ambiguous messages, treat them as greetings and DO NOT call any functions.
 
-12. IMPORTANT: When user asks about "savings account", ALWAYS use account number "2345678901".
-    When user asks about "checking account", ALWAYS use account number "1234567890".
-    When user asks about "credit card", ALWAYS use account number "3456789012".
+12. The user_id parameter will be automatically filled for all functions except answer_banking_question.
 """
 
 # Tool definitions
@@ -82,7 +80,7 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "user_id": {
                     "type": "string",
-                    "description": "The ID of the user"
+                    "description": "The ID of the user (will be automatically filled)"
                 }
             },
             "required": ["user_id"]
@@ -96,11 +94,11 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "user_id": {
                     "type": "string",
-                    "description": "The ID of the user"
+                    "description": "The ID of the user (will be automatically filled)"
                 },
                 "from_account": {
                     "type": "string",
-                    "description": "The source account number"
+                    "description": "The source account number (must be exact account number, not name)"
                 }
             },
             "required": ["user_id", "from_account"]
@@ -114,19 +112,19 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "user_id": {
                     "type": "string",
-                    "description": "The ID of the user"
+                    "description": "The ID of the user (will be automatically filled)"
                 },
                 "from_account": {
                     "type": "string",
-                    "description": "The source account number"
+                    "description": "The source account number (must be exact account number, not name): 1234567890 for checking, 2345678901 for savings, 3456789012 for credit card"
                 },
                 "to_account": {
                     "type": "string",
-                    "description": "The destination account number"
+                    "description": "The destination account number (must be exact account number, not name): 1234567890 for checking, 2345678901 for savings, 3456789012 for credit card"
                 },
                 "amount": {
                     "type": "string",
-                    "description": "The amount to transfer"
+                    "description": "The amount to transfer as a string without $ or commas (e.g., '50.00')"
                 }
             },
             "required": ["user_id", "from_account", "to_account", "amount"]
@@ -140,11 +138,11 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "user_id": {
                     "type": "string",
-                    "description": "The ID of the user"
+                    "description": "The ID of the user (will be automatically filled)"
                 },
                 "account_number": {
                     "type": "string",
-                    "description": "The account number"
+                    "description": "The account number (must be exact account number, not name): 1234567890 for checking, 2345678901 for savings, 3456789012 for credit card"
                 }
             },
             "required": ["user_id", "account_number"]
@@ -158,11 +156,11 @@ TOOL_DEFINITIONS = [
             "properties": {
                 "user_id": {
                     "type": "string",
-                    "description": "The ID of the user"
+                    "description": "The ID of the user (will be automatically filled)"
                 },
                 "account_number": {
                     "type": "string",
-                    "description": "The account number"
+                    "description": "The account number (must be exact account number, not name): 1234567890 for checking, 2345678901 for savings, 3456789012 for credit card"
                 },
                 "days": {
                     "type": "integer",
