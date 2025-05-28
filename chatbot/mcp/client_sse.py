@@ -336,7 +336,7 @@ class InteractiveBankingAssistant:
             await self.close_session()
 
 async def main():
-    """Main entry point for the interactive banking assistant."""
+    """Main entry point for the interactive banking agent."""
     try:
         assistant = InteractiveBankingAssistant()
         await assistant.run_interactive()
