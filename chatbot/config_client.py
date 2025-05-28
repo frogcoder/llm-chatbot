@@ -7,12 +7,6 @@ COMMANDS = {
     "user": ["user", "switch user", "change user"]
 }
 
-# Response templates
-RESPONSE_TEMPLATES = {
-    "error": [
-        "I'm sorry, I couldn't complete that action: {error}"
-    ]
-}
 
 # System instructions template
 SYSTEM_INSTRUCTIONS = """

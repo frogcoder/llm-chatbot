@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 # Import custom modules
 from chatbot.config import DEFAULT_USER_ID, ACCOUNT_MAPPINGS
 from chatbot.config_client import (
-    RESPONSE_TEMPLATES, SYSTEM_INSTRUCTIONS, 
+    SYSTEM_INSTRUCTIONS, 
     TOOL_DEFINITIONS, MODEL_CONFIG
 )
 from chatbot.response_formatter import ResponseFormatter
@@ -86,19 +86,6 @@ class InteractiveBankingAssistant:
                     if hasattr(part, 'function_call'):
                         func_call = part.function_call
                         function_name = func_call.name
-                        
-                        # Auto-fill account numbers for common account types
-                        if function_name in ["get_account_balance", "get_transaction_history"]:
-                            args = func_call.args
-                            if "account_number" not in args or not args["account_number"]:
-                                # Try to infer from the conversation history
-                                last_user_msg = self.conversation_history[-1]["content"].lower()
-                                if "savings" in last_user_msg or "saving" in last_user_msg:
-                                    args["account_number"] = "2345678901"
-                                elif "checking" in last_user_msg or "chequing" in last_user_msg:
-                                    args["account_number"] = "1234567890"
-                                elif "credit" in last_user_msg:
-                                    args["account_number"] = "3456789012"
                         
                         # Execute the function call through MCP and wait for result
                         try:
@@ -225,26 +212,9 @@ class InteractiveBankingAssistant:
     def _format_result_for_logging(self, result):
         """Format a result object for logging."""
         try:
-            if isinstance(result, dict):
-                # Try to pretty print if it's a dict
-                return json.dumps(result, indent=2)
-            elif isinstance(result, list):
-                # For lists of objects (like accounts)
-                if result and hasattr(result[0], '__dict__'):
-                    # Convert dataclass objects to dicts for better display
-                    return json.dumps([item.__dict__ for item in result], indent=2)
-                else:
-                    return "\n".join(str(item) for item in result)
-            else:
-                # Handle string results that might be JSON
-                try:
-                    if isinstance(result, str) and (result.startswith('{') or result.startswith('[')):
-                        parsed = json.loads(result)
-                        return json.dumps(parsed, indent=2)
-                    else:
-                        return str(result)
-                except:
-                    return str(result)
+            if isinstance(result, (dict, list)):
+                return json.dumps(result, indent=2, default=str)
+            return str(result)
         except Exception as e:
             print(f"Error formatting result for logging: {e}")
             return str(result)
@@ -309,9 +279,6 @@ class InteractiveBankingAssistant:
             # Process and print response
             assistant_response = await self._process_response(response)
             
-            # Clean up the response by removing generic messages
-            assistant_response = self._clean_response(assistant_response)
-            
             print("\n🔁 Assistant:")
             print(assistant_response)
             
@@ -325,24 +292,6 @@ class InteractiveBankingAssistant:
             print(f"\n❌ {error_msg}")
             return error_msg
     
-    def _clean_response(self, response):
-        """Clean up the response by removing generic messages."""
-        # List of generic phrases to remove
-        generic_phrases = [
-            "I've completed that action for you.",
-            "I've processed your request.",
-            "I've completed the transfer for you."
-        ]
-        
-        # Remove each generic phrase
-        cleaned_response = response
-        for phrase in generic_phrases:
-            cleaned_response = cleaned_response.replace(phrase, "").strip()
-        
-        # Remove any double newlines that might have been created
-        cleaned_response = cleaned_response.replace("\n\n\n", "\n\n")
-        
-        return cleaned_response
     
     async def run_interactive(self):
         """Run the assistant in interactive mode."""
