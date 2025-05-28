@@ -54,13 +54,16 @@ function appendMessage(sender, message) {
     msgElem.appendChild(textNode);
   } else if (sender === 'Bot') {
     msgElem.classList.add('message', 'bot-message');
-    // For bot messages, parse markdown and allow HTML to render properly
-    // First check if the message already contains HTML tags
-    if (/<[a-z][\s\S]*>/i.test(message)) {
-      // If it contains HTML, just render it directly
+    
+    // For bot messages, check if it contains HTML tags like <div>, <p>, <ul>, etc.
+    // but exclude simple tags that might be in markdown like <br>, <strong>, <em>
+    const containsComplexHtml = /<(div|p|ul|li|ol|h1|h2|h3|table|tr|td|span|section)[\s>]/i.test(message);
+    
+    if (containsComplexHtml) {
+      // If it contains complex HTML, render it directly
       msgElem.innerHTML = message;
     } else {
-      // If it doesn't contain HTML, parse markdown first
+      // If it doesn't contain complex HTML, parse markdown first
       msgElem.innerHTML = parseMarkdown(message);
     }
   } else {
