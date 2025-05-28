@@ -87,6 +87,10 @@ class InteractiveBankingAssistant:
                         func_call = part.function_call
                         function_name = func_call.name
                         
+                        # Skip empty function calls silently without warning
+                        if not function_name or function_name.strip() == "":
+                            continue
+                        
                         # Execute the function call through MCP and wait for result
                         try:
                             # Call the function through the MCP session and await the result
@@ -174,10 +178,9 @@ class InteractiveBankingAssistant:
     async def _execute_function_call(self, function_name, args):
         """Execute a function call through the MCP session."""
         try:
-            # Check if function name is empty or invalid
+            # Check if function name is empty or invalid - this should never happen now
             if not function_name or function_name.strip() == "":
-                print(f"\n⚠️ Warning: Empty function name received")
-                # Return a response that won't trigger "I've completed that action for you"
+                # Just return silently without warning
                 return {
                     "content": "No valid function specified",
                     "skip_response": True,
