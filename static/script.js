@@ -56,7 +56,7 @@ async function submitLogin() {
       
       // Add welcome message after successful login
       setTimeout(() => {
-        appendMessage('Bot', 'Welcome to RBC Banking Assistant! How can I help you today? You can ask about your accounts, make transfers, or get information about RBC services.');
+        appendMessage('Bot', 'Welcome to RBC Banking Assistant! How can I help you today?');
       }, 500);
       
       chatBox.scrollTop = chatBox.scrollHeight;
