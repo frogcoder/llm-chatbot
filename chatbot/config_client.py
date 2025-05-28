@@ -1,24 +1,5 @@
 """Configuration settings for the chatbot client."""
 
-# Banking domains and intents
-BANKING_DOMAINS = [
-    "account", "balance", "transfer", "payment", "deposit", "withdraw", "credit", 
-    "debit", "mortgage", "loan", "interest", "fee", "card", "statement", 
-    "transaction", "banking", "rbc", "royal bank", "invest", "saving", "checking",
-    "chequing", "tfsa", "rrsp", "resp", "insurance", "online banking", "mobile banking"
-]
-
-# Greeting patterns
-GREETING_PATTERNS = [
-    "hi", "hello", "hey", "greetings", "good morning", "good afternoon", 
-    "good evening", "yo", "sup", "howdy", "hi there", "hello there"
-]
-
-# Farewell patterns
-FAREWELL_PATTERNS = [
-    "bye", "goodbye", "see you", "farewell", "exit", "quit", "q", "end"
-]
-
 # Command patterns
 COMMANDS = {
     "exit": ["exit", "quit", "q", "bye", "goodbye"],
@@ -28,31 +9,16 @@ COMMANDS = {
 
 # Response templates
 RESPONSE_TEMPLATES = {
-    "greeting": [
-        "Hello! How can I help with your RBC banking needs today?",
-        "Hi there! How may I assist you with your RBC accounts or services today?",
-        "Good day! I'm here to help with your RBC banking questions.",
-        "Welcome! How can I assist you with your RBC banking today?"
-    ],
     "farewell": [
         "Goodbye! Thank you for using RBC Banking Assistant.",
         "Thank you for using RBC Banking Assistant. Have a great day!",
         "It was a pleasure assisting you. Goodbye!",
         "Have a wonderful day! Goodbye!"
     ],
-    "non_banking": [
-        "I can only help with RBC banking-related questions.",
-        "I'm specialized in RBC banking services. I can't help with that topic.",
-        "That's outside my area of expertise. I can assist with RBC banking questions."
-    ],
     "error": [
         "I'm sorry, I couldn't complete that action: {error}",
         "There was an error processing your request: {error}",
         "I encountered a problem: {error}"
-    ],
-    "transfer_success": [
-        "✅ Transferred ${amount} from {from_account} to {to_account}.",
-        "Your transfer of ${amount} from {from_account} to {to_account} was successful."
     ]
 }
 

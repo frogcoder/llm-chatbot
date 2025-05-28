@@ -317,7 +317,7 @@ class InteractiveBankingAssistant:
         command, arg = IntentDetector.detect_command(user_input)
         if command:
             if command == "exit":
-                return random.choice(RESPONSE_TEMPLATES["farewell"])
+                return RESPONSE_TEMPLATES["farewell"][0]
             elif command == "clear":
                 self.conversation_history = []
                 return "Conversation history cleared."
@@ -366,7 +366,7 @@ class InteractiveBankingAssistant:
             return assistant_response
             
         except Exception as e:
-            error_msg = random.choice(RESPONSE_TEMPLATES["error"]).format(error=str(e))
+            error_msg = RESPONSE_TEMPLATES["error"][0].format(error=str(e))
             print(f"\n❌ {error_msg}")
             return error_msg
     
@@ -405,7 +405,7 @@ class InteractiveBankingAssistant:
                     # Check for exit command
                     command, _ = IntentDetector.detect_command(user_input)
                     if command == "exit":
-                        print(random.choice(RESPONSE_TEMPLATES["farewell"]))
+                        print(RESPONSE_TEMPLATES["farewell"][0])
                         break
                     
                     # Process the message
