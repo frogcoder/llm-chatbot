@@ -110,10 +110,12 @@ async function sendMessage() {
       body: JSON.stringify({ message })
     });
     
-    // Remove typing indicator
+    const data = await res.json();
+    
+    // Remove typing indicator after we get the response
     removeTypingIndicator();
     
-    const data = await res.json();
+    // Display the bot's response
     appendMessage('Bot', data.reply);
   } catch (err) {
     // Remove typing indicator
