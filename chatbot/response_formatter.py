@@ -113,15 +113,17 @@ class ResponseFormatter:
                     pass
             
             if transactions and len(transactions) > 0:
-                lines = [f"Here are the recent transactions for your account:"]
+                lines = ["<p>Here are the recent transactions for your account:</p>"]
+                lines.append("<ul>")
                 for i, transaction in enumerate(transactions[:5]):  # Show only first 5 transactions
                     date = transaction.get('date', 'Unknown date')
                     desc = transaction.get('description', 'Transaction')
                     amount = transaction.get('amount', '0.00')
-                    lines.append(f"- {date}: {desc} - {amount}")
+                    lines.append(f"<li>{date}: {desc} - {amount}</li>")
+                lines.append("</ul>")
                 if len(transactions) > 5:
-                    lines.append(f"...and {len(transactions) - 5} more transactions.")
-                return "\n".join(lines)
+                    lines.append(f"<p>...and {len(transactions) - 5} more transactions.</p>")
+                return "".join(lines)
             else:
                 return "I couldn't find any transactions for this account."
         except Exception as e:
