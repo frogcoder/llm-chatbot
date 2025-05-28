@@ -15,21 +15,38 @@ function toggleChat() {
 
 // Simple Markdown parser function
 function parseMarkdown(text) {
+  // Extract the sources div if present to preserve it
+  let sourcesDiv = '';
+  const sourcesMatch = text.match(/<div class='sources-section'>[\s\S]*?<\/div>$/);
+  if (sourcesMatch) {
+    sourcesDiv = sourcesMatch[0];
+    text = text.replace(sourcesDiv, '');
+  }
+  
+  // Create a temporary div to work with the HTML content
+  const tempDiv = document.createElement('div');
+  
+  // Process ordered lists (1. Item format)
+  const orderedListRegex = /(\d+\.\s+.*(?:\n|$))+/g;
+  text = text.replace(orderedListRegex, function(match) {
+    const items = match.split(/\n/).filter(item => /^\d+\.\s+/.test(item));
+    const listItems = items.map(item => `<li>${item.replace(/^\d+\.\s+/, '')}</li>`).join('');
+    return `<ol>${listItems}</ol>`;
+  });
+  
+  // Process unordered lists (* Item format)
+  const unorderedListRegex = /(\*\s+.*(?:\n|$))+/g;
+  text = text.replace(unorderedListRegex, function(match) {
+    const items = match.split(/\n/).filter(item => /^\*\s+/.test(item));
+    const listItems = items.map(item => `<li>${item.replace(/^\*\s+/, '')}</li>`).join('');
+    return `<ul>${listItems}</ul>`;
+  });
+  
   // Handle bold text
   text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   
   // Handle italic text
   text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  
-  // Handle line breaks
-  text = text.replace(/\n/g, '<br>');
-  
-  // Handle lists (simple implementation)
-  text = text.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
-  text = text.replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>');
-  
-  // Consolidate multiple <ul> tags
-  text = text.replace(/<\/ul>\s*<ul>/g, '');
   
   // Handle headers
   text = text.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
@@ -38,6 +55,18 @@ function parseMarkdown(text) {
   
   // Handle code blocks
   text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+  
+  // Handle paragraphs - split by double newlines
+  const paragraphs = text.split(/\n\n+/);
+  text = paragraphs.map(p => p.trim() ? `<p>${p}</p>` : '').join('');
+  
+  // Handle single line breaks within paragraphs
+  text = text.replace(/\n/g, '<br>');
+  
+  // Reattach the sources div if it was present
+  if (sourcesDiv) {
+    text += sourcesDiv;
+  }
   
   return text;
 }
@@ -55,17 +84,8 @@ function appendMessage(sender, message) {
   } else if (sender === 'Bot') {
     msgElem.classList.add('message', 'bot-message');
     
-    // For bot messages, check if it contains HTML tags like <div>, <p>, <ul>, etc.
-    // but exclude simple tags that might be in markdown like <br>, <strong>, <em>
-    const containsComplexHtml = /<(div|p|ul|li|ol|h1|h2|h3|table|tr|td|span|section)[\s>]/i.test(message);
-    
-    if (containsComplexHtml) {
-      // If it contains complex HTML, render it directly
-      msgElem.innerHTML = message;
-    } else {
-      // If it doesn't contain complex HTML, parse markdown first
-      msgElem.innerHTML = parseMarkdown(message);
-    }
+    // Always parse markdown first, but preserve any HTML in the sources section
+    msgElem.innerHTML = parseMarkdown(message);
   } else {
     msgElem.classList.add('message', 'system-message');
     msgElem.innerHTML = message;
@@ -340,4 +360,50 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Make the chat popup resizable
   makeResizable(chatPopup);
+  
+  // Add CSS for markdown styling
+  const style = document.createElement('style');
+  style.textContent = `
+    .bot-message {
+      line-height: 1.5;
+    }
+    .bot-message p {
+      margin: 0 0 10px 0;
+    }
+    .bot-message p:last-child {
+      margin-bottom: 0;
+    }
+    .bot-message ol, .bot-message ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .bot-message li {
+      margin-bottom: 5px;
+    }
+    .bot-message h1, .bot-message h2, .bot-message h3 {
+      margin: 15px 0 10px 0;
+      font-weight: bold;
+    }
+    .bot-message h1 {
+      font-size: 1.5em;
+    }
+    .bot-message h2 {
+      font-size: 1.3em;
+    }
+    .bot-message h3 {
+      font-size: 1.1em;
+    }
+    .sources-section {
+      margin-top: 10px;
+      padding: 8px;
+      background-color: #e6f7ff;
+      border-radius: 5px;
+      font-size: 0.9em;
+    }
+    .sources-section ul {
+      margin: 5px 0 0 0;
+      padding-left: 20px;
+    }
+  `;
+  document.head.appendChild(style);
 });
