@@ -151,11 +151,22 @@ class ResponseFormatter:
                 if "sources" in result and result["sources"]:
                     sources = result["sources"]
                     if len(sources) == 1:
-                        response += f"<div class='sources-section'><strong>Source:</strong> {sources[0]}</div>"
+                        # Truncate long source URLs if needed
+                        source = sources[0]
+                        if len(source) > 80:
+                            display_source = source[:77] + "..."
+                        else:
+                            display_source = source
+                        response += f"<div class='sources-section'><strong>Source:</strong> {display_source}</div>"
                     elif len(sources) > 1:
                         sources_html = "<div class='sources-section'><strong>Sources:</strong><ul>"
                         for source in sources:
-                            sources_html += f"<li>{source}</li>"
+                            # Truncate long source URLs if needed
+                            if len(source) > 80:
+                                display_source = source[:77] + "..."
+                            else:
+                                display_source = source
+                            sources_html += f"<li>{display_source}</li>"
                         sources_html += "</ul></div>"
                         response += sources_html
                 

@@ -248,6 +248,10 @@ body {
   border-radius: 4px;
   font-size: 0.9em;
   color: #555;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .sources-section strong {
@@ -261,6 +265,9 @@ body {
 
 .sources-section li {
   margin-bottom: 3px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .typing-indicator {
