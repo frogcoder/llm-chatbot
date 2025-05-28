@@ -53,6 +53,12 @@ async function submitLogin() {
       msgElem.classList.add('message', 'success-message');
       msgElem.innerHTML = '✅ Login successful! You can now proceed.';
       chatBox.appendChild(msgElem);
+      
+      // Add welcome message after successful login
+      setTimeout(() => {
+        appendMessage('Bot', 'Welcome to RBC Banking Assistant! How can I help you today? You can ask about your accounts, make transfers, or get information about RBC services.');
+      }, 500);
+      
       chatBox.scrollTop = chatBox.scrollHeight;
     } else {
       appendMessage('System', '❌ Login failed. Try again.');
