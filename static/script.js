@@ -20,13 +20,16 @@ function appendMessage(sender, message) {
   
   if (sender === 'You') {
     msgElem.classList.add('message', 'user-message');
-    msgElem.innerHTML = `${message}`;
+    // For user messages, escape HTML to prevent injection
+    const textNode = document.createTextNode(message);
+    msgElem.appendChild(textNode);
   } else if (sender === 'Bot') {
     msgElem.classList.add('message', 'bot-message');
-    msgElem.innerHTML = `${message}`;
+    // For bot messages, allow HTML to render properly
+    msgElem.innerHTML = message;
   } else {
     msgElem.classList.add('message', 'system-message');
-    msgElem.innerHTML = `${message}`;
+    msgElem.innerHTML = message;
   }
   
   chatBox.appendChild(msgElem);
