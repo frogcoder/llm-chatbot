@@ -135,7 +135,7 @@ An intelligent banking assistant that combines LLM capabilities with RAG (Retrie
 - List accounts: "Show me all my accounts"
 
 ### Banking Information
-- Product inquiries: "What are the benefits of an RBC TFSA?"
+- Product inquiries: "Tell me about the cash back program."
 - Service questions: "How do I set up direct deposit?"
 - Policy questions: "What is RBC's mortgage pre-approval process?"
 - Investment guidance: "How can I withdraw money from my TFSA account?"
