@@ -38,9 +38,28 @@ mcp = FastMCP(name=MCP_NAME, host=MCP_HOST, port=MCP_PORT)
 def answer_banking_question(question: str) -> dict:
     """
     Answer a banking question using the RAG system with RBC documentation.
+    Only for banking, financial services, or RBC-related questions.
     Returns the answer and sources.
     """
     print(f"[RAG] Processing question: {question}")
+    
+    # Check if this is a banking-related question
+    banking_keywords = ["bank", "rbc", "account", "credit", "debit", "loan", "mortgage", 
+                       "interest", "deposit", "withdraw", "transfer", "payment", "finance", 
+                       "banking", "savings", "checking", "card", "atm", "branch", "online banking",
+                       "fee", "charge", "rate", "invest", "insurance", "wealth", "financial"]
+    
+    # Simple check if the question is likely banking-related
+    is_banking_related = any(keyword in question.lower() for keyword in banking_keywords)
+    
+    if not is_banking_related:
+        print(f"[RAG] Question appears to be non-banking related: {question}")
+        return {
+            "answer": "I'm sorry, I can only answer questions related to banking, financial services, or RBC products. For other topics, please consult appropriate resources.",
+            "sources": []
+        }
+    
+    # Process banking-related question
     result = chatbot.answer_question(question)
     print(f"[RAG] Found answer with {len(result['sources'])} sources")
     return {
