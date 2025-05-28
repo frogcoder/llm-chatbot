@@ -60,6 +60,10 @@ class RBCChatbot:
         about RBC's products, services, and policies based on the official documentation. 
         If you're unsure or the information isn't in the provided context, acknowledge that 
         and suggest the user contact RBC directly. Always be professional, helpful, and concise.
+        
+        IMPORTANT: You must ONLY answer questions related to banking, financial services, or RBC products.
+        For any questions outside of these domains (like fitness, travel, cooking, etc.), politely decline
+        to answer and explain that you can only help with banking-related topics.
         """
         
         self._initialized = True
@@ -83,11 +87,19 @@ class RBCChatbot:
     def answer_question(self, question):
         """Answer a question using RAG"""
         try:
-            # Combine the system prompt with the user's question
-            full_query = f"{self.system_prompt}\n\nQuestion: {question}"
+            # Enhance the system prompt to emphasize banking-only responses
+            enhanced_prompt = f"""
+            {self.system_prompt}
+            
+            IMPORTANT: You are a banking assistant for RBC. Only answer questions related to banking, 
+            financial services, or RBC products and services. If the question is not related to 
+            banking or finance, politely explain that you can only assist with banking-related topics.
+            
+            Question: {question}
+            """
             
             # Get the answer from the chain using invoke instead of __call__
-            result = self.qa_chain.invoke({"query": full_query})
+            result = self.qa_chain.invoke({"query": enhanced_prompt})
             
             # Extract the answer and sources
             answer = result["result"]
@@ -98,6 +110,11 @@ class RBCChatbot:
             for doc in source_docs:
                 if hasattr(doc, "metadata") and "source" in doc.metadata:
                     sources.append(doc.metadata["source"])
+            
+            # Only include sources if the answer is actually about banking
+            # If the model declined to answer, don't include sources
+            if "I can only assist with banking" in answer or "I'm sorry, I can only answer" in answer:
+                sources = []
             
             # Return the answer and unique sources
             return {
