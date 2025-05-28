@@ -13,6 +13,35 @@ function toggleChat() {
   }
 }
 
+// Simple Markdown parser function
+function parseMarkdown(text) {
+  // Handle bold text
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Handle italic text
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Handle line breaks
+  text = text.replace(/\n/g, '<br>');
+  
+  // Handle lists (simple implementation)
+  text = text.replace(/^\s*-\s+(.*?)$/gm, '<li>$1</li>');
+  text = text.replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>');
+  
+  // Consolidate multiple <ul> tags
+  text = text.replace(/<\/ul>\s*<ul>/g, '');
+  
+  // Handle headers
+  text = text.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+  text = text.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+  text = text.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+  
+  // Handle code blocks
+  text = text.replace(/`(.*?)`/g, '<code>$1</code>');
+  
+  return text;
+}
+
 // Append a message to the chat box
 function appendMessage(sender, message) {
   const chatBox = document.getElementById('chat-box');
@@ -25,8 +54,15 @@ function appendMessage(sender, message) {
     msgElem.appendChild(textNode);
   } else if (sender === 'Bot') {
     msgElem.classList.add('message', 'bot-message');
-    // For bot messages, allow HTML to render properly
-    msgElem.innerHTML = message;
+    // For bot messages, parse markdown and allow HTML to render properly
+    // First check if the message already contains HTML tags
+    if (/<[a-z][\s\S]*>/i.test(message)) {
+      // If it contains HTML, just render it directly
+      msgElem.innerHTML = message;
+    } else {
+      // If it doesn't contain HTML, parse markdown first
+      msgElem.innerHTML = parseMarkdown(message);
+    }
   } else {
     msgElem.classList.add('message', 'system-message');
     msgElem.innerHTML = message;

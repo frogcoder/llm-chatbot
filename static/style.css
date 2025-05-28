@@ -218,6 +218,61 @@ body {
   margin-right: auto;
   border-bottom-left-radius: 4px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+/* Markdown styling */
+.bot-message strong {
+  font-weight: bold;
+}
+
+.bot-message em {
+  font-style: italic;
+}
+
+.bot-message ul {
+  list-style-type: disc;
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.bot-message ol {
+  list-style-type: decimal;
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.bot-message li {
+  margin-bottom: 5px;
+}
+
+.bot-message p {
+  margin-bottom: 10px;
+}
+
+.bot-message h1, .bot-message h2, .bot-message h3, 
+.bot-message h4, .bot-message h5, .bot-message h6 {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.bot-message code {
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.bot-message pre {
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+  font-family: monospace;
 }
 
 .system-message {

@@ -59,15 +59,13 @@ class ResponseFormatter:
         try:
             accounts = ResponseFormatter._extract_accounts(result)
             if accounts and len(accounts) > 0:
-                account_lines = ["<p>Here are your accounts:</p>"]
-                account_lines.append("<ul>")
+                account_lines = ["Here are your accounts:"]
                 for account in accounts:
                     account_lines.append(
-                        f"<li>{account.get('account_name', 'Account')} "
-                        f"({account.get('account_number', '')})</li>"
+                        f"- {account.get('account_name', 'Account')} "
+                        f"({account.get('account_number', '')})"
                     )
-                account_lines.append("</ul>")
-                return "".join(account_lines)
+                return "\n".join(account_lines)
             else:
                 return "You don't have any accounts set up yet."
         except Exception as e:
@@ -115,17 +113,15 @@ class ResponseFormatter:
                     pass
             
             if transactions and len(transactions) > 0:
-                lines = ["<p>Here are the recent transactions for your account:</p>"]
-                lines.append("<ul>")
+                lines = ["Here are the recent transactions for your account:"]
                 for i, transaction in enumerate(transactions[:5]):  # Show only first 5 transactions
                     date = transaction.get('date', 'Unknown date')
                     desc = transaction.get('description', 'Transaction')
                     amount = transaction.get('amount', '0.00')
-                    lines.append(f"<li>{date}: {desc} - {amount}</li>")
-                lines.append("</ul>")
+                    lines.append(f"- {date}: {desc} - {amount}")
                 if len(transactions) > 5:
-                    lines.append(f"<p>...and {len(transactions) - 5} more transactions.</p>")
-                return "".join(lines)
+                    lines.append(f"...and {len(transactions) - 5} more transactions.")
+                return "\n".join(lines)
             else:
                 return "I couldn't find any transactions for this account."
         except Exception as e:
@@ -159,18 +155,16 @@ class ResponseFormatter:
                             display_source = source[:77] + "..."
                         else:
                             display_source = source
-                        response += f"<div class='sources-section'><strong>Source:</strong> {display_source}</div>"
+                        response += f"\n\n**Source:** {display_source}"
                     elif len(sources) > 1:
-                        sources_html = "<div class='sources-section'><strong>Sources:</strong><ul>"
+                        response += "\n\n**Sources:**"
                         for source in sources:
                             # Truncate long source URLs if needed
                             if len(source) > 80:
                                 display_source = source[:77] + "..."
                             else:
                                 display_source = source
-                            sources_html += f"<li>{display_source}</li>"
-                        sources_html += "</ul></div>"
-                        response += sources_html
+                            response += f"\n- {display_source}"
                 
                 return response
             else:
