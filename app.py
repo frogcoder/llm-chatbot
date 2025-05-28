@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your_secret_key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 
-# Instantiate & initialize the assistant at startup
+# Instantiate & initialize the agent at startup
 assistant = InteractiveBankingAssistant()
 
 # Spin up a dedicated loop in a background thread

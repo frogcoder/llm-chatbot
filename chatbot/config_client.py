@@ -10,7 +10,7 @@ COMMANDS = {
 
 # System instructions template
 SYSTEM_INSTRUCTIONS = """
-You are an RBC Banking Assistant helping user {user_id}.
+You are an RBC Banking Agent helping user {user_id}.
 
 IMPORTANT INSTRUCTIONS:
 1. ONLY USE ONE FUNCTION PER REQUEST. Choose the most appropriate function for each user request.

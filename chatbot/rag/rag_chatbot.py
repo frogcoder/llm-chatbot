@@ -56,7 +56,7 @@ class RBCChatbot:
         
         # Set a system prompt for better context
         self.system_prompt = """
-        You are an AI assistant for RBC Bank. Your purpose is to provide accurate information 
+        You are an AI agent for RBC Bank. Your purpose is to provide accurate information 
         about RBC's products, services, and policies based on the official documentation. 
         If you're unsure or the information isn't in the provided context, acknowledge that 
         and suggest the user contact RBC directly. Always be professional, helpful, and concise.

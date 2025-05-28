@@ -1,4 +1,4 @@
-"""Interactive Banking Assistant using Gemini and MCP."""
+"""Interactive Banking Agent using Gemini and MCP."""
 import os
 import asyncio
 import sys
@@ -28,7 +28,7 @@ load_dotenv("../../.env")
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 class InteractiveBankingAssistant:
-    """Interactive banking assistant using Gemini and MCP."""
+    """Interactive banking agent using Gemini and MCP."""
     
     def __init__(self):
         """Initialize the banking assistant."""
@@ -49,7 +49,7 @@ class InteractiveBankingAssistant:
         self.session = ClientSession(self.read_stream, self.write_stream)
         await self.session.__aenter__()
         await self.session.initialize()
-        print("\n🔄 Connected to RBC Banking Assistant")
+        print("\n🔄 Connected to RBC Banking Agent")
     
     async def close_session(self):
         """Close the MCP session."""
@@ -248,7 +248,7 @@ class InteractiveBankingAssistant:
         command, arg = IntentDetector.detect_command(user_input)
         if command:
             if command == "exit":
-                return "Goodbye! Thank you for using RBC Banking Assistant."
+                return "Goodbye! Thank you for using RBC Banking Agent."
             elif command == "clear":
                 self.conversation_history = []
                 return "Conversation history cleared."
@@ -304,7 +304,7 @@ class InteractiveBankingAssistant:
         try:
             await self.initialize_session()
             
-            print("\n🏦 RBC Banking Assistant")
+            print("\n🏦 RBC Banking Agent")
             print("Type 'exit' to quit, 'clear' to clear conversation history")
             print("Type 'user <id>' to change user ID (current: " + self.user_id + ")")
             
@@ -315,7 +315,7 @@ class InteractiveBankingAssistant:
                     # Check for exit command
                     command, _ = IntentDetector.detect_command(user_input)
                     if command == "exit":
-                        print("Goodbye! Thank you for using RBC Banking Assistant.")
+                        print("Goodbye! Thank you for using RBC Banking Agent.")
                         break
                     
                     # Process the message
