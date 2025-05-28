@@ -196,24 +196,6 @@ class InteractiveBankingAssistant:
                     "skip_response": True,
                     "error": True
                 }
-            
-            # Check for non-banking queries using the intent detector
-            if function_name == "answer_banking_question" and args and "question" in args:
-                question = args["question"]
-                
-                # Check if the question is banking-related
-                if not IntentDetector.is_banking_related(question):
-                    return {
-                        "answer": random.choice(RESPONSE_TEMPLATES["non_banking"]),
-                        "skip_function_call": True
-                    }
-                
-                # Check for ambiguous inputs that shouldn't trigger function calls
-                if IntentDetector.is_greeting(question) or len(question.strip()) <= 3:
-                    return {
-                        "answer": random.choice(RESPONSE_TEMPLATES["greeting"]),
-                        "skip_function_call": True
-                    }
                 
             # Convert args from Gemini format to what MCP expects
             mcp_args = {}
@@ -343,14 +325,6 @@ class InteractiveBankingAssistant:
                 self.user_id = arg
                 return f"User ID changed to: {self.user_id}"
         
-        # Check if this is a simple greeting
-        if IntentDetector.is_greeting(user_input):
-            response_text = random.choice(RESPONSE_TEMPLATES["greeting"])
-            print("\n🔁 Assistant:")
-            print(response_text)
-            self.conversation_history.append({"role": "assistant", "content": response_text})
-            return response_text
-        
         # For non-greetings, build the prompt with history
         try:
             # Create a model with the tools from config
@@ -368,23 +342,7 @@ class InteractiveBankingAssistant:
                 tool_config={"function_calling_config": MODEL_CONFIG["tool_calling_config"]}
             )
             
-            # For very short, ambiguous inputs, respond conversationally without calling functions
-            if len(user_input.strip()) <= 3 and not user_input.strip().isdigit():
-                response_text = random.choice(RESPONSE_TEMPLATES["greeting"])
-                print("\n🔁 Assistant:")
-                print(response_text)
-                self.conversation_history.append({"role": "assistant", "content": response_text})
-                return response_text
-            
-            # Handle direct account queries
-            if "balance" in user_input.lower() or "transaction" in user_input.lower() or "history" in user_input.lower():
-                account_number = None
-                if "savings" in user_input.lower() or "saving" in user_input.lower():
-                    account_number = "2345678901"
-                elif "checking" in user_input.lower() or "chequing" in user_input.lower():
-                    account_number = "1234567890"
-                elif "credit" in user_input.lower():
-                    account_number = "3456789012"
+            # Let the LLM handle all queries, including short ones and account queries
             
             # Generate content with system instructions from config
             system_instructions = SYSTEM_INSTRUCTIONS.format(user_id=self.user_id)
