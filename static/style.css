@@ -240,6 +240,29 @@ body {
   width: 90%;
 }
 
+.sources-section {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f0f7ff;
+  border-left: 3px solid #0042aa;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.sources-section strong {
+  color: #0042aa;
+}
+
+.sources-section ul {
+  margin: 5px 0 0 0;
+  padding-left: 20px;
+}
+
+.sources-section li {
+  margin-bottom: 3px;
+}
+
 .typing-indicator {
   display: flex;
   align-items: center;

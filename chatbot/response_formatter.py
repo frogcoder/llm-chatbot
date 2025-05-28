@@ -147,15 +147,17 @@ class ResponseFormatter:
                 else:
                     response = answer
                 
-                # Optionally add sources
+                # Optionally add sources with clear visual distinction
                 if "sources" in result and result["sources"]:
                     sources = result["sources"]
                     if len(sources) == 1:
-                        response += f"\n\nSource: {sources[0]}"
+                        response += f"<div class='sources-section'><strong>Source:</strong> {sources[0]}</div>"
                     elif len(sources) > 1:
-                        response += "\n\nSources:"
+                        sources_html = "<div class='sources-section'><strong>Sources:</strong><ul>"
                         for source in sources:
-                            response += f"\n- {source}"
+                            sources_html += f"<li>{source}</li>"
+                        sources_html += "</ul></div>"
+                        response += sources_html
                 
                 return response
             else:
