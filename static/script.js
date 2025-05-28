@@ -8,6 +8,8 @@ function toggleChat() {
   // If we're opening the chat and not logged in, show login modal
   if (!chatPopup.classList.contains('hidden') && !accessToken) {
     document.getElementById('login-modal').classList.remove('hidden');
+    // Auto-focus on the username field
+    document.getElementById('username').focus();
   }
 }
 
