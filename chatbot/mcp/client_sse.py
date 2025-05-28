@@ -184,8 +184,8 @@ class InteractiveBankingAssistant:
                     "error": True
                 }
                 
-            # Create a copy of args to avoid modifying the original
-            mcp_args = args.copy() if args else {}
+            # Create a new dict from args to avoid modifying the original
+            mcp_args = dict(args) if args else {}
             
             # Add user_id automatically if not provided and needed
             if function_name != "answer_banking_question" and "user_id" not in mcp_args:
@@ -235,6 +235,9 @@ class InteractiveBankingAssistant:
     
     async def send_message(self, user_input):
         """Send a message to the assistant and get a response."""
+        # Print user input for debugging
+        print(f"\n💬 User: {user_input}")
+        
         # Add user message to history
         self.conversation_history.append({"role": "user", "content": user_input})
         
