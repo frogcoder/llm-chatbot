@@ -118,7 +118,7 @@ class ResponseFormatter:
                     date = transaction.get('date', 'Unknown date')
                     desc = transaction.get('description', 'Transaction')
                     amount = transaction.get('amount', '0.00')
-                    lines.append(f"- {date}: {desc} - {amount}")
+                    lines.append(f"- {date}: {desc}: ${amount}")
                 if len(transactions) > 5:
                     lines.append(f"...and {len(transactions) - 5} more transactions.")
                 return "\n".join(lines)
